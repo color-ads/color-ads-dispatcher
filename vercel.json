@@ -1,9 +1,4 @@
 {
   "version": 2,
-  "outputDirectory": "public",
-  "functions": {
-    "api/chat.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "outputDirectory": "public"
 }
