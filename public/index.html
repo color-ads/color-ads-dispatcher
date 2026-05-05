@@ -206,7 +206,7 @@ async function sendMsg() {
   setLoading(true);
 
   try {
-    const cr = await fetch("https://api.anthropic.com/v1/messages", {
+    const cr = await fetch("/api/chat", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({
