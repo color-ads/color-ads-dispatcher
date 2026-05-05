@@ -82,9 +82,9 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <button class="btn" onclick="saveToken()">Conectar y abrir el chat →</button>
       <div class="examples">
         <p>Ejemplos</p>
-        <span>→ "Tarea para Heiss: guion de contenido mayo, para Miguel"</span>
-        <span>→ "Reporte mensual Hashtag 98, Karen, para el 20 de mayo"</span>
-        <span>→ "DOM: revisar campaña de pauta, urgente, Miguel"</span>
+        <span>→ "Tarea para Heiss: guion de contenido mayo, para Liliana"</span>
+        <span>→ "Reporte mensual Hashtag 98, Roberto, para el 20 de mayo"</span>
+        <span>→ "DOM: revisar campaña de pauta, urgente, Nico"</span>
       </div>
     </div>
   </div>
@@ -98,7 +98,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <div class="msg-system">Hola equipo 👋 Escríbeme una tarea y la creo en ClickUp automáticamente.</div>
     </div>
     <div class="input-row">
-      <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Miguel, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
+      <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Liliana, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
       <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
     </div>
   </div>
@@ -106,55 +106,77 @@ input:disabled{opacity:.5;cursor:not-allowed}
 
 <script>
 const CLIENTS = {
-  "hashtag 98":  {name:"Hashtag 98",   emoji:"📊", lists:{paid:"901327110437",disenio:"901327110442",estrategia:"901327110445",admin:"901327110446"}},
-  "heiss":       {name:"Heiss Hotel",  emoji:"🏨", lists:{paid:"901327110448",disenio:"901327110452",estrategia:"901327110454",admin:"901327110455"}},
-  "jalo":        {name:"Jalo Rent",    emoji:"🏠", lists:{paid:"901327110462",disenio:"901327110467",estrategia:"901327110468",admin:"901327110472"}},
-  "open":        {name:"Open Constructora",emoji:"🏗️",lists:{paid:"901327110474",disenio:"901327110475",estrategia:"901327110477",admin:"901327110481"}},
-  "nakua":       {name:"Nakúa",        emoji:"🌿", lists:{paid:"901327110485",disenio:"901327110486",estrategia:"901327110487",admin:"901327110489"}},
-  "kundara":     {name:"Kundara",      emoji:"🏢", lists:{paid:"901327110490",disenio:"901327110492",estrategia:"901327110497",admin:"901327110499"}},
-  "palmanova":   {name:"Palmanova",    emoji:"🌴", lists:{paid:"901327110505",disenio:"901327110506",estrategia:"901327110508",admin:"901327110514"}},
-  "caney":       {name:"Caney",        emoji:"🌳", lists:{paid:"901327110550",disenio:"901327110551",estrategia:"901327110554",admin:"901327110557"}},
-  "triventto":   {name:"Triventto",    emoji:"🏙️", lists:{paid:"901327110558",disenio:"901327110561",estrategia:"901327110562",admin:"901327110564"}},
-  "sorentto":    {name:"Sorentto",     emoji:"🏡", lists:{paid:"901327110566",disenio:"901327110568",estrategia:"901327110573",admin:"901327110574"}},
-  "dom":         {name:"DOM",          emoji:"🎯", lists:{paid:"901327110575",disenio:"901327110578",estrategia:"901327110581",admin:"901327110584"}},
-  "hunters":     {name:"Hunters",      emoji:"🍸", lists:{paid:"901327110585",disenio:"901327110586",estrategia:"901327110587",admin:"901327110589"}},
-  "calle flora": {name:"Calle Flora",  emoji:"🌸", lists:{paid:"901327110590",disenio:"901327110593",estrategia:"901327110594",admin:"901327110597"}},
-  "agora tech":  {name:"Agora Tech",   emoji:"⚙️", lists:{paid:"901327110598",disenio:"901327110600",estrategia:"901327110601",admin:"901327110602"}},
+  "hashtag 98":  {name:"Hashtag 98",        emoji:"📊", lists:{paid:"901327110437",disenio:"901327110442",estrategia:"901327110445",admin:"901327110446"}},
+  "heiss":       {name:"Heiss Hotel",        emoji:"🏨", lists:{paid:"901327110448",disenio:"901327110452",estrategia:"901327110454",admin:"901327110455"}},
+  "jalo":        {name:"Jalo Rent",          emoji:"🏠", lists:{paid:"901327110462",disenio:"901327110467",estrategia:"901327110468",admin:"901327110472"}},
+  "open":        {name:"Open Constructora",  emoji:"🏗️", lists:{paid:"901327110474",disenio:"901327110475",estrategia:"901327110477",admin:"901327110481"}},
+  "nakua":       {name:"Nakúa",              emoji:"🌿", lists:{paid:"901327110485",disenio:"901327110486",estrategia:"901327110487",admin:"901327110489"}},
+  "kundara":     {name:"Kundara",            emoji:"🏢", lists:{paid:"901327110490",disenio:"901327110492",estrategia:"901327110497",admin:"901327110499"}},
+  "palmanova":   {name:"Palmanova",          emoji:"🌴", lists:{paid:"901327110505",disenio:"901327110506",estrategia:"901327110508",admin:"901327110514"}},
+  "caney":       {name:"Caney",              emoji:"🌳", lists:{paid:"901327110550",disenio:"901327110551",estrategia:"901327110554",admin:"901327110557"}},
+  "triventto":   {name:"Triventto",          emoji:"🏙️", lists:{paid:"901327110558",disenio:"901327110561",estrategia:"901327110562",admin:"901327110564"}},
+  "sorentto":    {name:"Sorentto",           emoji:"🏡", lists:{paid:"901327110566",disenio:"901327110568",estrategia:"901327110573",admin:"901327110574"}},
+  "dom":         {name:"DOM",                emoji:"🎯", lists:{paid:"901327110575",disenio:"901327110578",estrategia:"901327110581",admin:"901327110584"}},
+  "hunters":     {name:"Hunters",            emoji:"🍸", lists:{paid:"901327110585",disenio:"901327110586",estrategia:"901327110587",admin:"901327110589"}},
+  "calle flora": {name:"Calle Flora",        emoji:"🌸", lists:{paid:"901327110590",disenio:"901327110593",estrategia:"901327110594",admin:"901327110597"}},
+  "agora tech":  {name:"Agora Tech",         emoji:"⚙️", lists:{paid:"901327110598",disenio:"901327110600",estrategia:"901327110601",admin:"901327110602"}},
 };
-const TEAM = {karen:{id:82093636,name:"Karen Gómez"},miguel:{id:90671147,name:"Miguel López"}};
-const PRIORITY_MAP = {urgent:1,high:2,normal:3,low:4};
-const LIST_LABELS = {paid:"Paid Media",disenio:"Diseño & Contenido",estrategia:"Estrategia & Reportes",admin:"Admin & Comunicación"};
+
+const TEAM = {
+  karen:   {id:82093636,  name:"Karen Gómez"},
+  miguel:  {id:90671147,  name:"Miguel López"},
+  liliana: {id:118053410, name:"Liliana Bohórquez"},
+  nicolas: {id:118053412, name:"Nicolás Garay"},
+  nico:    {id:118053412, name:"Nicolás Garay"},
+  sofia:   {id:118053413, name:"Sofía Ramírez"},
+  sofi:    {id:118053413, name:"Sofía Ramírez"},
+  esau:    {id:118053414, name:"Esaú Guerra"},
+  daniela: {id:null,      name:"Daniela"},
+  roberto: {id:null,      name:"Roberto Escobar"},
+};
+
+const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
+const LIST_LABELS  = {paid:"Paid Media", disenio:"Diseño & Contenido", estrategia:"Estrategia & Reportes", admin:"Admin & Comunicación"};
 let clickupToken = "";
 
 const SYSTEM_PROMPT = `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
 
-CLIENTES (client_key):
-"hashtag 98","heiss","jalo","open","nakua","kundara","palmanova","caney","triventto","sorentto","dom","hunters","calle flora","agora tech"
+CLIENTES (client_key exacto):
+"hashtag 98", "heiss", "jalo", "open", "nakua", "kundara", "palmanova", "caney", "triventto", "sorentto", "dom", "hunters", "calle flora", "agora tech"
 
-TIPOS DE LISTA (list_type):
-"paid" = campañas, pauta, ads, meta, google, presupuesto de pauta
-"disenio" = artes, guiones, contenido, fotos, videos, diseño, creativos, copy
-"estrategia" = reportes, análisis, métricas, estrategia, resultados
-"admin" = reuniones, contratos, facturación, coordinación, llamadas
+TIPOS DE LISTA (list_type) — infiere según la naturaleza de la tarea:
+"paid"       → campañas, pauta, ads, meta, google, presupuesto, tráfico pagado
+"disenio"    → artes, guiones, contenido, fotos, videos, diseño, creativos, copy, edición
+"estrategia" → reportes, análisis, métricas, estrategia, resultados, planificación
+"admin"      → reuniones, contratos, facturación, coordinación, llamadas, onboarding
 
-EQUIPO (assignee_key): "karen" o "miguel" o null
+EQUIPO (assignee_key exacto):
+"karen"   → Karen Gómez (Directora Comercial)
+"miguel"  → Miguel López (Director Digital)
+"liliana" → Liliana Bohórquez (Diseño)
+"sofia"   → Sofía Ramírez (Diseño)
+"daniela" → Daniela (Video)
+"nicolas" → Nicolás Garay (Paid Media) — también acepta "nico"
+"esau"    → Esaú Guerra (Developer)
+"roberto" → Roberto Escobar (Planning)
+null      → sin asignar
 
-PRIORIDADES: urgent, high, normal, low (si no se menciona → normal)
+PRIORIDADES: urgent, high, normal, low — si no se menciona usar "normal"
 
-HOY: ${new Date().toISOString().split('T')[0]}
+HOY: ${new Date().toISOString().split("T")[0]}
 
-Responde SOLO JSON válido sin markdown ni backticks:
-{"confirmed":true,"task_name":"...","client_key":"...","list_type":"...","assignee_key":"karen|miguel|null","priority":"...","due_date":"YYYY-MM-DD o null","description":"..."}
+Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
+{"confirmed":true,"task_name":"nombre claro","client_key":"...","list_type":"...","assignee_key":"...|null","priority":"...","due_date":"YYYY-MM-DD|null","description":"descripción breve"}
 
-Si no puedes identificar cliente o tarea:
-{"confirmed":false,"error":"..."}`;
+Si no puedes identificar el cliente o la tarea:
+{"confirmed":false,"error":"mensaje explicando qué falta"}`;
 
 function saveToken() {
   const val = document.getElementById("tokenInput").value.trim();
   if (!val) return;
   clickupToken = val;
   document.getElementById("setupCard").style.display = "none";
-  document.getElementById("chatCard").style.display = "block";
+  document.getElementById("chatCard").style.display  = "block";
   document.getElementById("statusDot").classList.remove("off");
 }
 
@@ -164,13 +186,11 @@ function addMsg(html) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
-function setLoading(state) {
-  const btn = document.getElementById("sendBtn");
-  const input = document.getElementById("msgInput");
-  btn.disabled = state;
-  input.disabled = state;
+function setLoading(on) {
+  document.getElementById("sendBtn").disabled = on;
+  document.getElementById("msgInput").disabled = on;
   const tid = "typing-indicator";
-  if (state) {
+  if (on) {
     addMsg(`<div class="typing" id="${tid}"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-label">Procesando...</span></div>`);
   } else {
     document.getElementById(tid)?.remove();
@@ -179,94 +199,104 @@ function setLoading(state) {
 
 async function sendMsg() {
   const input = document.getElementById("msgInput");
-  const text = input.value.trim();
+  const text  = input.value.trim();
   if (!text) return;
   input.value = "";
-  addMsg(`<div class="msg-user">${escHtml(text)}</div>`);
+  addMsg(`<div class="msg-user">${esc(text)}</div>`);
   setLoading(true);
 
   try {
-    const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:500,
-        system:SYSTEM_PROMPT,
-        messages:[{role:"user",content:text}]
+    const cr = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 500,
+        system: SYSTEM_PROMPT,
+        messages: [{role:"user", content:text}]
       })
     });
-    const claudeData = await claudeRes.json();
-    const rawText = claudeData.content?.[0]?.text || "";
+    const cd  = await cr.json();
+    const raw = cd.content?.[0]?.text || "";
 
-    let parsed;
-    try { parsed = JSON.parse(rawText); }
-    catch { parsed = {confirmed:false,error:"No pude procesar la respuesta."}; }
+    let p;
+    try { p = JSON.parse(raw); }
+    catch { p = {confirmed:false, error:"No pude procesar la respuesta."}; }
 
-    if (!parsed.confirmed) {
+    if (!p.confirmed) {
       setLoading(false);
-      addMsg(`<div class="msg-error">✕ ${escHtml(parsed.error || "No entendí. Especifica el cliente y la tarea.")}</div>`);
+      addMsg(`<div class="msg-error">✕ ${esc(p.error || "No entendí. Especifica el cliente y la tarea.")}</div>`);
       return;
     }
 
-    const client = CLIENTS[parsed.client_key];
+    const client = CLIENTS[p.client_key];
     if (!client) {
       setLoading(false);
-      addMsg(`<div class="msg-error">✕ No reconocí el cliente "${escHtml(parsed.client_key)}".</div>`);
+      addMsg(`<div class="msg-error">✕ No reconocí el cliente "${esc(p.client_key)}".</div>`);
       return;
     }
 
-    const listId = client.lists[parsed.list_type] || client.lists.admin;
-    const assignee = parsed.assignee_key && TEAM[parsed.assignee_key];
-    const priority = PRIORITY_MAP[parsed.priority] || 3;
-    const dueDate = parsed.due_date ? new Date(parsed.due_date).getTime() : null;
+    const listId   = client.lists[p.list_type] || client.lists.admin;
+    const member   = p.assignee_key && TEAM[p.assignee_key];
+    const priority = PRIORITY_MAP[p.priority] || 3;
+    const dueTs    = p.due_date ? new Date(p.due_date).getTime() : null;
 
-    const taskBody = {name:parsed.task_name, description:parsed.description||"", priority};
-    if (assignee) taskBody.assignees = [assignee.id];
-    if (dueDate) taskBody.due_date = dueDate;
+    const body = {name:p.task_name, description:p.description||"", priority};
+    if (member && member.id) body.assignees = [member.id];
+    if (dueTs) body.due_date = dueTs;
 
-    const cuRes = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":clickupToken},
-      body:JSON.stringify(taskBody)
+    const cur  = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json", "Authorization":clickupToken},
+      body: JSON.stringify(body)
     });
-    const cuData = await cuRes.json();
-
+    const cud = await cur.json();
     setLoading(false);
 
-    if (!cuRes.ok) {
-      addMsg(`<div class="msg-error">✕ ClickUp: ${escHtml(cuData.err || "Token inválido o sin permisos")}</div>`);
+    if (!cur.ok) {
+      addMsg(`<div class="msg-error">✕ ClickUp: ${esc(cud.err || "Token inválido o sin permisos")}</div>`);
       return;
     }
 
-    const link = cuData.url ? `<a href="${cuData.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
+    const pendingNote = (member && member.id === null)
+      ? `<div style="margin-top:8px;font-size:11px;color:#554422;">⚠ ${esc(member.name)} aún no activó su cuenta en ClickUp — tarea creada sin asignar.</div>`
+      : "";
+
+    const link = cud.url ? `<a href="${cud.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
+
     addMsg(`
       <div class="msg-success">
         <div class="success-header">
           <div class="success-dot">✓</div>
           <span class="success-label">Tarea creada en ClickUp</span>
         </div>
-        <p class="task-name">${escHtml(parsed.task_name)}</p>
+        <p class="task-name">${esc(p.task_name)}</p>
         <div class="task-meta">
-          <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${client.name}</span>
-          <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[parsed.list_type] || "Admin"}</span>
-          <span class="meta-key">Asignado</span><span class="meta-val">${assignee ? assignee.name : "Sin asignar"}</span>
-          <span class="meta-key">Prioridad</span><span class="meta-val">${parsed.priority}</span>
-          ${parsed.due_date ? `<span class="meta-key">Fecha</span><span class="meta-val">${parsed.due_date}</span>` : ""}
+          <span class="meta-key">Cliente</span>   <span class="meta-val">${client.emoji} ${client.name}</span>
+          <span class="meta-key">Lista</span>     <span class="meta-val">${LIST_LABELS[p.list_type] || "Admin"}</span>
+          <span class="meta-key">Asignado</span>  <span class="meta-val">${member ? member.name : "Sin asignar"}</span>
+          <span class="meta-key">Prioridad</span> <span class="meta-val">${p.priority}</span>
+          ${p.due_date ? `<span class="meta-key">Fecha</span><span class="meta-val">${p.due_date}</span>` : ""}
         </div>
+        ${pendingNote}
         ${link}
       </div>`);
+
   } catch(e) {
     setLoading(false);
     addMsg(`<div class="msg-error">✕ Error de conexión. Intenta de nuevo.</div>`);
   }
 }
 
-function escHtml(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function esc(s) {
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-document.getElementById("tokenInput").addEventListener("keydown", e => { if(e.key==="Enter") saveToken(); });
+document.getElementById("tokenInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") saveToken();
+});
 </script>
 </body>
 </html>
