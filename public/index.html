@@ -217,7 +217,7 @@ async function sendMsg() {
       })
     });
     const cd  = await cr.json();
-let raw = cd.content?.[0]?.text || "";
+let raw = cd.content?.[0]?.text || JSON.stringify(cd).substring(0,300) || "";
 raw = raw.replace(/```json\n?/g,"").replace(/```\n?/g,"").trim();
     let p;
     try { p = JSON.parse(raw); }
