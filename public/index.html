@@ -221,7 +221,7 @@ let raw = cd.content?.[0]?.text || "";
 raw = raw.replace(/```json\n?/g,"").replace(/```\n?/g,"").trim();
     let p;
     try { p = JSON.parse(raw); }
-    catch { p = {confirmed:false, error:"No pude procesar la respuesta."}; }
+catch { p = {confirmed:false, error:"RAW: " + raw.substring(0,200)}; }
 
     if (!p.confirmed) {
       setLoading(false);
