@@ -76,11 +76,9 @@ input:disabled{opacity:.5;cursor:not-allowed}
 
   <div class="card" id="setupCard">
     <div class="setup-body">
-      <h2>Configuración inicial</h2>
-      <p class="sub" style="margin-bottom:12px">ClickUp Token → <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → My Settings → Apps</p>
-      <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off" style="margin-bottom:8px"/>
-      <p class="sub" style="margin-bottom:6px;margin-top:8px">Anthropic API Key → <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys</p>
-      <input type="password" id="anthropicInput" placeholder="sk-ant-..." autocomplete="off"/>
+      <h2>ClickUp Personal Token</h2>
+      <p class="sub">Encuéntralo en <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → My Settings → Apps → API Token</p>
+      <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off"/>
       <button class="btn" onclick="saveToken()">Conectar y abrir el chat →</button>
       <div class="examples">
         <p>Ejemplos</p>
@@ -140,7 +138,6 @@ const TEAM = {
 const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
 const LIST_LABELS  = {paid:"Paid Media", disenio:"Diseño & Contenido", estrategia:"Estrategia & Reportes", admin:"Admin & Comunicación"};
 let clickupToken = "";
-let anthropicKey = "";
 
 const SYSTEM_PROMPT = `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
 
@@ -176,10 +173,8 @@ Si no puedes identificar el cliente o la tarea:
 
 function saveToken() {
   const val = document.getElementById("tokenInput").value.trim();
-  const ant = document.getElementById("anthropicInput").value.trim();
-  if (!val || !ant) { alert("Ingresa ambos tokens para continuar."); return; }
+  if (!val) return;
   clickupToken = val;
-  anthropicKey = ant;
   document.getElementById("setupCard").style.display = "none";
   document.getElementById("chatCard").style.display  = "block";
   document.getElementById("statusDot").classList.remove("off");
@@ -211,9 +206,9 @@ async function sendMsg() {
   setLoading(true);
 
   try {
-    const cr = await fetch("https://api.anthropic.com/v1/messages", {
+    const cr = await fetch("/api/chat", {
       method: "POST",
-      headers: {"Content-Type":"application/json","x-api-key":anthropicKey,"anthropic-version":"2023-06-01"},
+      headers: {"Content-Type":"application/json"},
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 500,
