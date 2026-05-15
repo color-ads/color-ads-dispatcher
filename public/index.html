@@ -30,9 +30,11 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .examples{margin-top:16px;background:#0d0d0d;border-radius:8px;padding:12px}
 .examples p{font-size:11px;color:#444;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
 .examples span{display:block;font-size:12px;color:#3d3d3d;line-height:1.7}
-.chat-header{padding:12px 16px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px}
-.chat-header span{font-size:13px;font-weight:500;color:#ccc}
-.messages{height:420px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.chat-header{padding:10px 14px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px}
+.chat-header span{font-size:13px;font-weight:500;color:#ccc;flex:1}
+.new-client-btn{padding:5px 10px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;color:#22c55e;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.new-client-btn:hover{background:#111f11}
+.messages{height:400px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
 .messages::-webkit-scrollbar{width:4px}
 .messages::-webkit-scrollbar-track{background:transparent}
 .messages::-webkit-scrollbar-thumb{background:#1e1e1e;border-radius:4px}
@@ -40,9 +42,12 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .msg-user{align-self:flex-end;background:#161625;border:1px solid #252540;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;color:#9ab0f5;max-width:85%}
 .msg-error{background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:13px;color:#854040}
 .msg-success{background:#0d0d0d;border:1px solid #1a2a1a;border-radius:10px;padding:14px}
+.msg-client{background:#0d0d0d;border:1px solid #1a2a3a;border-radius:10px;padding:14px}
 .success-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .success-dot{width:18px;height:18px;border-radius:50%;background:#0f2010;border:1px solid #1a3a1a;display:flex;align-items:center;justify-content:center;font-size:10px;color:#22c55e;flex-shrink:0}
+.client-dot{width:18px;height:18px;border-radius:50%;background:#0f1020;border:1px solid #1a2a4a;display:flex;align-items:center;justify-content:center;font-size:10px;color:#4f8ef7;flex-shrink:0}
 .success-label{font-size:12px;font-weight:500;color:#22c55e}
+.client-label{font-size:12px;font-weight:500;color:#4f8ef7}
 .task-name{font-size:14px;font-weight:500;color:#d4d4d4;margin-bottom:10px;line-height:1.4}
 .task-meta{display:grid;grid-template-columns:80px 1fr;gap:5px 8px;font-size:12px}
 .meta-key{color:#3a3a3a}
@@ -61,6 +66,25 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .send-btn{padding:9px 14px;background:#161625;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;cursor:pointer;white-space:nowrap;transition:background .15s}
 .send-btn:hover{background:#1c1c30}
 .send-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* New client modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal{background:#111;border:1px solid #222;border-radius:16px;width:100%;max-width:400px;padding:20px}
+.modal h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
+.modal p{font-size:12px;color:#444;margin-bottom:16px}
+.modal label{display:block;font-size:12px;color:#555;margin-bottom:5px;margin-top:12px}
+.modal input{width:100%;padding:9px 12px;background:#0d0d0d;border:1px solid #242424;border-radius:8px;color:#e2e2e2;font-size:13px;font-family:inherit;outline:none}
+.modal input:focus{border-color:#333}
+.modal-emoji-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.emoji-opt{width:34px;height:34px;border-radius:8px;background:#0d0d0d;border:1px solid #242424;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:border-color .15s}
+.emoji-opt:hover{border-color:#333}
+.emoji-opt.selected{border-color:#4f8ef7;background:#0d1020}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-cancel{flex:1;padding:9px;background:transparent;border:1px solid #242424;border-radius:8px;color:#555;font-size:13px;cursor:pointer}
+.modal-cancel:hover{border-color:#333;color:#888}
+.modal-create{flex:2;padding:9px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.modal-create:hover{background:#1e1e38}
+.modal-create:disabled{opacity:.4;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -92,7 +116,8 @@ input:disabled{opacity:.5;cursor:not-allowed}
   <div class="card" id="chatCard" style="display:none">
     <div class="chat-header">
       <span>Task Dispatcher</span>
-      <div class="dot" style="margin-left:auto"></div>
+      <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
+      <div class="dot" style="margin-left:8px"></div>
     </div>
     <div class="messages" id="messages">
       <div class="msg-system">Hola equipo 👋 Escríbeme una tarea y la creo en ClickUp automáticamente.</div>
@@ -104,7 +129,27 @@ input:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </div>
 
+<!-- New Client Modal -->
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>Agregar nuevo cliente</h3>
+    <p>Se crearán las 4 listas automáticamente en ClickUp</p>
+    <label>Nombre del cliente</label>
+    <input type="text" id="newClientName" placeholder="Ej: Restaurante El Árbol" onkeydown="if(event.key==='Enter')createClient()"/>
+    <label>Emoji</label>
+    <div class="modal-emoji-row" id="emojiRow"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-create" id="createBtn" onclick="createClient()">Crear cliente en ClickUp →</button>
+    </div>
+  </div>
+</div>
+
 <script>
+const SPACE_ID = "90130971239";
+const EMOJIS = ["🏢","🏨","🏠","🏗️","🌿","🌴","🌳","🎯","🍸","🌸","⚙️","🚀","💡","🎨","🏪","🏬","🎪","🌟"];
+let selectedEmoji = "🏢";
+
 const CLIENTS = {
   "hashtag 98":  {name:"Hashtag 98",        emoji:"📊", lists:{paid:"901327110437",disenio:"901327110442",estrategia:"901327110445",admin:"901327110446"}},
   "heiss":       {name:"Heiss Hotel",        emoji:"🏨", lists:{paid:"901327110448",disenio:"901327110452",estrategia:"901327110454",admin:"901327110455"}},
@@ -142,36 +187,28 @@ let clickupToken = "";
 
 const SYSTEM_PROMPT = `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
 
-CLIENTES (client_key exacto):
-"hashtag 98", "heiss", "jalo", "open", "nakua", "kundara", "palmanova", "caney", "triventto", "sorentto", "dom", "hunters", "calle flora", "agora tech", "actual"
+CLIENTES (client_key exacto — usa siempre minúsculas):
+${Object.keys(CLIENTS).map(k => `"${k}"`).join(", ")}
 
-TIPOS DE LISTA (list_type) — infiere según la naturaleza de la tarea:
+TIPOS DE LISTA (list_type):
 "paid"       → campañas, pauta, ads, meta, google, presupuesto, tráfico pagado
 "disenio"    → artes, guiones, contenido, fotos, videos, diseño, creativos, copy, edición
 "estrategia" → reportes, análisis, métricas, estrategia, resultados, planificación
 "admin"      → reuniones, contratos, facturación, coordinación, llamadas, onboarding
 
 EQUIPO (assignee_key exacto):
-"karen"   → Karen Gómez (Directora Comercial)
-"miguel"  → Miguel López (Director Digital)
-"liliana" → Liliana Bohórquez (Diseño)
-"sofia"   → Sofía Ramírez (Diseño)
-"daniela" → Daniela (Video)
-"nicolas" → Nicolás Garay (Paid Media) — también acepta "nico"
-"esau"    → Esaú Guerra (Developer)
-"roberto" → Roberto Escobar (Planning)
-null      → sin asignar
+"karen", "miguel", "liliana", "nicolas"/"nico", "sofia"/"sofi", "esau", "daniela", "roberto", null
 
-PRIORIDADES: urgent, high, normal, low — si no se menciona usar "normal"
-
+PRIORIDADES: urgent, high, normal, low — default: normal
 HOY: ${new Date().toISOString().split("T")[0]}
 
-Responde ÚNICAMENTE con JSON válido, sin markdown, sin texto adicional:
-{"confirmed":true,"task_name":"nombre claro","client_key":"...","list_type":"...","assignee_key":"...|null","priority":"...","due_date":"YYYY-MM-DD|null","description":"descripción breve"}
+Responde ÚNICAMENTE con JSON válido sin markdown:
+{"confirmed":true,"task_name":"...","client_key":"...","list_type":"...","assignee_key":"...|null","priority":"...","due_date":"YYYY-MM-DD|null","description":"..."}
 
-Si no puedes identificar el cliente o la tarea:
-{"confirmed":false,"error":"mensaje explicando qué falta"}`;
+Si falta cliente o tarea clara:
+{"confirmed":false,"error":"..."}`;
 
+// --- Setup ---
 function saveToken() {
   const val = document.getElementById("tokenInput").value.trim();
   if (!val) return;
@@ -181,6 +218,7 @@ function saveToken() {
   document.getElementById("statusDot").classList.remove("off");
 }
 
+// --- Chat ---
 function addMsg(html) {
   const msgs = document.getElementById("messages");
   msgs.insertAdjacentHTML("beforeend", html);
@@ -191,11 +229,8 @@ function setLoading(on) {
   document.getElementById("sendBtn").disabled = on;
   document.getElementById("msgInput").disabled = on;
   const tid = "typing-indicator";
-  if (on) {
-    addMsg(`<div class="typing" id="${tid}"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-label">Procesando...</span></div>`);
-  } else {
-    document.getElementById(tid)?.remove();
-  }
+  if (on) addMsg(`<div class="typing" id="${tid}"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-label">Procesando...</span></div>`);
+  else document.getElementById(tid)?.remove();
 }
 
 async function sendMsg() {
@@ -217,11 +252,11 @@ async function sendMsg() {
         messages: [{role:"user", content:text}]
       })
     });
-    const cd  = await cr.json();
+    const cd = await cr.json();
     let raw = cd.content?.[0]?.text || "";
-        raw = raw.replace(/```json\n?/gi,"").replace(/```\n?/g,"").trim();
-        const jsonMatch = raw.match(/\{[\s\S]*\}/);
-        if (jsonMatch) raw = jsonMatch[0];
+    raw = raw.replace(/```json\n?/gi,"").replace(/```\n?/g,"").trim();
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) raw = jsonMatch[0];
 
     let p;
     try { p = JSON.parse(raw); }
@@ -249,9 +284,9 @@ async function sendMsg() {
     if (member && member.id) body.assignees = [member.id];
     if (dueTs) body.due_date = dueTs;
 
-    const cur  = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {
+    const cur = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {
       method: "POST",
-      headers: {"Content-Type":"application/json", "Authorization":clickupToken},
+      headers: {"Content-Type":"application/json","Authorization":clickupToken},
       body: JSON.stringify(body)
     });
     const cud = await cur.json();
@@ -263,28 +298,20 @@ async function sendMsg() {
     }
 
     const pendingNote = (member && member.id === null)
-      ? `<div style="margin-top:8px;font-size:11px;color:#554422;">⚠ ${esc(member.name)} aún no activó su cuenta en ClickUp — tarea creada sin asignar.</div>`
+      ? `<div style="margin-top:8px;font-size:11px;color:#554422;">⚠ ${esc(member.name)} aún no activó su cuenta — tarea creada sin asignar.</div>`
       : "";
-
     const link = cud.url ? `<a href="${cud.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
 
-    addMsg(`
-      <div class="msg-success">
-        <div class="success-header">
-          <div class="success-dot">✓</div>
-          <span class="success-label">Tarea creada en ClickUp</span>
-        </div>
-        <p class="task-name">${esc(p.task_name)}</p>
-        <div class="task-meta">
-          <span class="meta-key">Cliente</span>   <span class="meta-val">${client.emoji} ${client.name}</span>
-          <span class="meta-key">Lista</span>     <span class="meta-val">${LIST_LABELS[p.list_type] || "Admin"}</span>
-          <span class="meta-key">Asignado</span>  <span class="meta-val">${member ? member.name : "Sin asignar"}</span>
-          <span class="meta-key">Prioridad</span> <span class="meta-val">${p.priority}</span>
-          ${p.due_date ? `<span class="meta-key">Fecha</span><span class="meta-val">${p.due_date}</span>` : ""}
-        </div>
-        ${pendingNote}
-        ${link}
-      </div>`);
+    addMsg(`<div class="msg-success">
+      <div class="success-header"><div class="success-dot">✓</div><span class="success-label">Tarea creada en ClickUp</span></div>
+      <p class="task-name">${esc(p.task_name)}</p>
+      <div class="task-meta">
+        <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${client.name}</span>
+        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[p.list_type]||"Admin"}</span>
+        <span class="meta-key">Asignado</span><span class="meta-val">${member?member.name:"Sin asignar"}</span>
+        <span class="meta-key">Prioridad</span><span class="meta-val">${p.priority}</span>
+        ${p.due_date?`<span class="meta-key">Fecha</span><span class="meta-val">${p.due_date}</span>`:""}
+      </div>${pendingNote}${link}</div>`);
 
   } catch(e) {
     setLoading(false);
@@ -292,15 +319,87 @@ async function sendMsg() {
   }
 }
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+// --- New Client Modal ---
+function openNewClient() {
+  const row = document.getElementById("emojiRow");
+  row.innerHTML = "";
+  EMOJIS.forEach(e => {
+    const d = document.createElement("div");
+    d.className = "emoji-opt" + (e === selectedEmoji ? " selected" : "");
+    d.textContent = e;
+    d.onclick = () => { selectedEmoji = e; document.querySelectorAll(".emoji-opt").forEach(x=>x.classList.remove("selected")); d.classList.add("selected"); };
+    row.appendChild(d);
+  });
+  document.getElementById("newClientName").value = "";
+  document.getElementById("modalOverlay").style.display = "flex";
+  setTimeout(() => document.getElementById("newClientName").focus(), 100);
 }
 
-document.getElementById("tokenInput").addEventListener("keydown", e => {
-  if (e.key === "Enter") saveToken();
-});
+function closeModal() {
+  document.getElementById("modalOverlay").style.display = "none";
+}
+
+async function createClient() {
+  const name = document.getElementById("newClientName").value.trim();
+  if (!name) { document.getElementById("newClientName").focus(); return; }
+
+  const btn = document.getElementById("createBtn");
+  btn.disabled = true;
+  btn.textContent = "Creando en ClickUp...";
+
+  try {
+    // 1. Create folder in ClickUp
+    const folderRes = await fetch(`https://api.clickup.com/api/v2/space/${SPACE_ID}/folder`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json","Authorization":clickupToken},
+      body: JSON.stringify({name: `${selectedEmoji} ${name}`})
+    });
+    const folder = await folderRes.json();
+    if (!folderRes.ok) throw new Error(folder.err || "Error creando carpeta");
+
+    // 2. Create 4 lists
+    const lists = ["📣 Paid Media","🎨 Diseño & Contenido","🧠 Estrategia & Reportes","📋 Admin & Comunicación"];
+    const listKeys = ["paid","disenio","estrategia","admin"];
+    const listIds = {};
+
+    for (let i = 0; i < lists.length; i++) {
+      const lr = await fetch(`https://api.clickup.com/api/v2/folder/${folder.id}/list`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json","Authorization":clickupToken},
+        body: JSON.stringify({name: lists[i]})
+      });
+      const ld = await lr.json();
+      listIds[listKeys[i]] = ld.id;
+    }
+
+    // 3. Add to CLIENTS in memory
+    const key = name.toLowerCase().trim();
+    CLIENTS[key] = {name, emoji: selectedEmoji, lists: listIds};
+
+    closeModal();
+    addMsg(`<div class="msg-client">
+      <div class="success-header"><div class="client-dot">✦</div><span class="client-label">Nuevo cliente creado</span></div>
+      <p class="task-name">${selectedEmoji} ${esc(name)}</p>
+      <div class="task-meta">
+        <span class="meta-key">En ClickUp</span><span class="meta-val">✓ Carpeta + 4 listas</span>
+        <span class="meta-key">En la app</span><span class="meta-val">✓ Disponible ahora</span>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#3a3a3a;">Ya puedes crear tareas para ${esc(name)} en este chat.</div>
+    </div>`);
+
+  } catch(e) {
+    addMsg(`<div class="msg-error">✕ Error: ${esc(e.message)}</div>`);
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Crear cliente en ClickUp →";
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+document.getElementById("tokenInput").addEventListener("keydown", e => { if(e.key==="Enter") saveToken(); });
 </script>
 </body>
 </html>
