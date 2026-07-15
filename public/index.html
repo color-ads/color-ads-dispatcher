@@ -6,16 +6,18 @@
 <title>Color Ads — Task Dispatcher</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e2e2e2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
-.container{width:100%;max-width:520px}
-.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e2e2e2;min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
+.container{width:100%;max-width:960px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
 .header-icon{width:38px;height:38px;border-radius:10px;background:#161625;border:1px solid #252540;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .header h1{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.2px}
 .header p{font-size:12px;color:#555;margin-top:2px}
-.dot{width:7px;height:7px;border-radius:50%;background:#22c55e;margin-left:auto;flex-shrink:0}
+.header-user{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:#666}
+.dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0}
 .dot.off{background:#3a3a3a}
 .card{background:#111;border:1px solid #1c1c1c;border-radius:16px;overflow:hidden}
-.setup-body{padding:20px}
+.login-card{max-width:520px;margin:40px auto 0}
+.setup-body{padding:24px}
 .setup-body h2{font-size:14px;font-weight:500;color:#ccc;margin-bottom:5px}
 .setup-body .sub{font-size:12px;color:#444;line-height:1.5;margin-bottom:16px}
 .setup-body .sub a{color:#4f8ef7;text-decoration:none}
@@ -24,23 +26,35 @@ input[type=text]{font-family:inherit}
 input:focus{border-color:#333}
 input::placeholder{color:#333}
 input:disabled{opacity:.5;cursor:not-allowed}
-.btn{width:100%;margin-top:10px;padding:10px 16px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn{width:100%;margin-top:10px;padding:11px 16px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
 .btn:hover{background:#1e1e38}
 .btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:#4f8ef7;border-color:#4f8ef7;color:#fff;font-size:14px}
+.btn-primary:hover{background:#3d7ce6}
 .setup-error{display:none;margin-top:10px;background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:12px;color:#854040}
-.examples{margin-top:16px;background:#0d0d0d;border-radius:8px;padding:12px}
-.examples p{font-size:11px;color:#444;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-.examples span{display:block;font-size:12px;color:#3d3d3d;line-height:1.7}
+.manual-toggle{display:block;text-align:center;margin-top:14px;font-size:12px;color:#444;cursor:pointer;background:none;border:none;width:100%}
+.manual-toggle:hover{color:#666}
+.manual-section{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #1a1a1a}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{padding:8px 16px;background:#111;border:1px solid #1c1c1c;border-radius:10px;color:#666;font-size:13px;cursor:pointer;transition:all .15s}
+.tab:hover{color:#999}
+.tab.active{background:#161625;border-color:#252540;color:#9ab0f5;font-weight:500}
+.tab-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.token-btn{padding:6px 12px;background:#141414;border:1px solid #242424;border-radius:8px;color:#666;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.token-btn:hover{background:#1a1a1a;color:#999}
+.new-client-btn{padding:6px 12px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:8px;color:#22c55e;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.new-client-btn:hover{background:#111f11}
+
+/* Chat */
+#chatCard{max-width:560px;margin:0 auto}
 .chat-header{padding:10px 14px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px}
 .chat-header span{font-size:13px;font-weight:500;color:#ccc;flex:1}
-.new-client-btn{padding:5px 10px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;color:#22c55e;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
-.new-client-btn:hover{background:#111f11}
-.token-btn{padding:5px 10px;background:#141414;border:1px solid #242424;border-radius:6px;color:#666;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
-.token-btn:hover{background:#1a1a1a;color:#999}
 .messages{height:400px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
-.messages::-webkit-scrollbar{width:4px}
-.messages::-webkit-scrollbar-track{background:transparent}
-.messages::-webkit-scrollbar-thumb{background:#1e1e1e;border-radius:4px}
+.messages::-webkit-scrollbar,.board-body::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-track,.board-body::-webkit-scrollbar-track{background:transparent}
+.messages::-webkit-scrollbar-thumb,.board-body::-webkit-scrollbar-thumb{background:#1e1e1e;border-radius:4px}
 .msg-system{background:#141414;border-radius:8px;padding:10px 12px;font-size:13px;color:#555;line-height:1.5}
 .msg-user{align-self:flex-end;background:#161625;border:1px solid #252540;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;color:#9ab0f5;max-width:85%}
 .msg-error{background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:13px;color:#854040}
@@ -69,8 +83,54 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .send-btn{padding:9px 14px;background:#161625;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;cursor:pointer;white-space:nowrap;transition:background .15s}
 .send-btn:hover{background:#1c1c30}
 .send-btn:disabled{opacity:.4;cursor:not-allowed}
+.examples{margin-top:16px;background:#0d0d0d;border-radius:8px;padding:12px}
+.examples p{font-size:11px;color:#444;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.examples span{display:block;font-size:12px;color:#3d3d3d;line-height:1.7}
 
-/* New client modal overlay */
+/* Board */
+.board-toolbar{padding:12px 14px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.area-chip{padding:6px 12px;background:#0d0d0d;border:1px solid #242424;border-radius:20px;color:#666;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.area-chip:hover{color:#999;border-color:#333}
+.area-chip.active{background:#161625;border-color:#4f8ef7;color:#9ab0f5;font-weight:500}
+.board-toolbar .spacer{flex:1}
+.mode-toggle{display:flex;background:#0d0d0d;border:1px solid #242424;border-radius:8px;overflow:hidden}
+.mode-toggle button{padding:6px 12px;background:none;border:none;color:#555;font-size:11px;cursor:pointer}
+.mode-toggle button.active{background:#161625;color:#9ab0f5}
+.refresh-btn{padding:6px 10px;background:#0d0d0d;border:1px solid #242424;border-radius:8px;color:#666;font-size:12px;cursor:pointer}
+.refresh-btn:hover{color:#999}
+.board-summary{padding:10px 14px;display:flex;gap:14px;font-size:12px;color:#555;border-bottom:1px solid #161616}
+.board-summary b{font-weight:600}
+.sum-late{color:#e05252}
+.sum-today{color:#e0a052}
+.board-body{max-height:640px;overflow-y:auto;padding:6px 14px 14px}
+.board-loading{padding:40px;text-align:center;color:#444;font-size:13px}
+.board-empty{padding:40px;text-align:center;color:#3a3a3a;font-size:13px}
+.group-header{display:flex;align-items:center;gap:8px;padding:14px 0 8px;position:sticky;top:0;background:#111;z-index:2}
+.group-avatar{width:22px;height:22px;border-radius:50%;background:#252540;color:#9ab0f5;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.group-title{font-size:13px;font-weight:600;color:#bbb}
+.group-count{font-size:11px;color:#444}
+.group-late{font-size:10px;background:#1a0d0d;border:1px solid #2a1515;color:#e05252;padding:2px 7px;border-radius:10px}
+.trow{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #1a1a1a;border-radius:10px;margin-bottom:6px;background:#0d0d0d;transition:opacity .3s}
+.trow.removing{opacity:0}
+.trow-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.trow-main{flex:1;min-width:0}
+.trow-name{font-size:13px;color:#ccc;line-height:1.35;text-decoration:none;display:block}
+.trow-name:hover{color:#9ab0f5}
+.trow-sub{display:flex;gap:8px;margin-top:3px;font-size:11px;color:#4a4a4a;align-items:center;flex-wrap:wrap}
+.trow-client{color:#666}
+.trow-assignee{width:20px;height:20px;border-radius:50%;background:#1c1c30;color:#8899cc;font-size:8px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.date-chip{position:relative;padding:5px 9px;background:#141414;border:1px solid #242424;border-radius:7px;font-size:11px;color:#777;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.date-chip:hover{border-color:#333;color:#aaa}
+.date-chip.late{background:#1a0d0d;border-color:#2a1515;color:#e05252}
+.date-chip.today{background:#1a140d;border-color:#2a2015;color:#e0a052}
+.date-chip input[type=date]{position:absolute;inset:0;opacity:0;cursor:pointer;color-scheme:dark;width:100%;height:100%}
+.done-btn{padding:5px 10px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:7px;color:#22c55e;font-size:11px;cursor:pointer;flex-shrink:0;transition:background .15s}
+.done-btn:hover{background:#122712}
+.done-btn:disabled{opacity:.4;cursor:wait}
+.bucket-header{display:flex;align-items:center;gap:8px;padding:14px 0 8px;position:sticky;top:0;background:#111;z-index:2}
+.bucket-title{font-size:13px;font-weight:600}
+
+/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
 .modal{background:#111;border:1px solid #222;border-radius:16px;width:100%;max-width:400px;padding:20px}
 .modal h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
@@ -88,6 +148,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .modal-create{flex:2;padding:9px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
 .modal-create:hover{background:#1e1e38}
 .modal-create:disabled{opacity:.4;cursor:not-allowed}
+@media (max-width:640px){.board-toolbar{gap:6px}.area-chip{padding:5px 9px;font-size:11px}}
 </style>
 </head>
 <body>
@@ -98,36 +159,52 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <h1>Color Ads — Task Dispatcher</h1>
       <p>Powered by Claude + ClickUp</p>
     </div>
-    <div class="dot off" id="statusDot"></div>
+    <div class="header-user" id="headerUser" style="display:none"></div>
+    <div class="dot off" id="statusDot" style="margin-left:10px"></div>
   </div>
 
-  <div class="card" id="setupCard">
+  <!-- Login -->
+  <div class="card login-card" id="setupCard">
     <div class="setup-body">
-      <h2>ClickUp Personal Token</h2>
-      <p class="sub">Encuéntralo en <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → My Settings → Apps → API Token</p>
-      <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off"/>
-      <button class="btn" id="connectBtn" onclick="saveToken()">Conectar y abrir el chat →</button>
+      <h2>Entrar al dispatcher</h2>
+      <p class="sub">Inicia sesión con tu cuenta de ClickUp del equipo Color Ads.</p>
+      <button class="btn btn-primary" id="oauthBtn" onclick="startOAuth()">Entrar con ClickUp →</button>
       <div class="setup-error" id="setupError"></div>
-      <div class="examples">
-        <p>Ejemplos</p>
-        <span>→ "Tarea para Heiss: guion de contenido mayo, para Liliana"</span>
-        <span>→ "Reporte mensual Hashtag 98, para el 20 de agosto"</span>
-        <span>→ "Hunters: ajustar landing de reservas, urgente, Nico"</span>
+      <button class="manual-toggle" onclick="toggleManual()">¿Problemas? Usar token manual</button>
+      <div class="manual-section" id="manualSection">
+        <p class="sub">Pega tu API token personal: <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → Settings → Apps → API Token</p>
+        <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off"/>
+        <button class="btn" id="connectBtn" onclick="saveToken()">Conectar con token →</button>
       </div>
     </div>
   </div>
 
-  <div class="card" id="chatCard" style="display:none">
-    <div class="chat-header">
-      <span>Task Dispatcher</span>
-      <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
-      <button class="token-btn" onclick="logout()">Cambiar token</button>
-      <div class="dot" style="margin-left:8px"></div>
+  <!-- App -->
+  <div id="appShell" style="display:none">
+    <div class="tabs">
+      <button class="tab active" id="tabChat" onclick="switchTab('chat')">⚡ Crear tareas</button>
+      <button class="tab" id="tabBoard" onclick="switchTab('board')">📋 Tablero por área</button>
+      <div class="tab-right">
+        <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
+        <button class="token-btn" onclick="logout()">Salir</button>
+      </div>
     </div>
-    <div class="messages" id="messages"></div>
-    <div class="input-row">
-      <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Liliana, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
-      <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
+
+    <div class="card" id="chatCard">
+      <div class="chat-header"><span>Crear tareas con lenguaje natural</span><div class="dot"></div></div>
+      <div class="messages" id="messages"></div>
+      <div class="input-row">
+        <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Liliana, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
+        <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
+      </div>
+    </div>
+
+    <div class="card" id="boardCard" style="display:none">
+      <div class="board-toolbar" id="areaChips"></div>
+      <div class="board-summary" id="boardSummary" style="display:none"></div>
+      <div class="board-body" id="boardBody">
+        <div class="board-loading">Cargando tablero...</div>
+      </div>
     </div>
   </div>
 </div>
@@ -151,26 +228,33 @@ input:disabled{opacity:.5;cursor:not-allowed}
 <script>
 const SPACE_ID = "90130971239";
 const TEAM_ID  = "9013231845";
+const OPS_FOLDER_ID = "901318180618"; // 🏢 Operaciones - Color Ads LLC (interna, no es cliente)
 const EMOJIS = ["🏢","🏨","🏠","🏗️","🌿","🌴","🌳","🎯","🍸","🌸","⚙️","🚀","💡","🎨","🏪","🏬","🎪","🌟"];
 let selectedEmoji = "🏢";
 
-// Las 5 listas estándar de cada cliente. La estructura real se lee de ClickUp
-// al conectar — aquí solo viven los nombres canónicos para crear clientes nuevos.
 const LIST_DEFS = [
-  {key:"paid",       name:"📣 Paid Media"},
-  {key:"disenio",    name:"🎨 Diseño & Contenido"},
-  {key:"estrategia", name:"🧠 Estrategia & Reportes"},
-  {key:"admin",      name:"📋 Admin & Comunicación"},
-  {key:"desweb",     name:"💻 Desarrollo Web"},
+  {key:"paid",       name:"📣 Paid Media",           chip:"📣 Paid"},
+  {key:"disenio",    name:"🎨 Diseño & Contenido",   chip:"🎨 Diseño"},
+  {key:"estrategia", name:"🧠 Estrategia & Reportes",chip:"🧠 Estrategia"},
+  {key:"admin",      name:"📋 Admin & Comunicación", chip:"📋 Admin"},
+  {key:"desweb",     name:"💻 Desarrollo Web",       chip:"💻 Web"},
 ];
-const LIST_LABELS = {paid:"Paid Media", disenio:"Diseño & Contenido", estrategia:"Estrategia & Reportes", admin:"Admin & Comunicación", desweb:"Desarrollo Web"};
+const LIST_LABELS = Object.fromEntries(LIST_DEFS.map(d => [d.key, d.name.replace(/^\S+\s/, "")]));
 const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
 
 let clickupToken = "";
-let CLIENTS = {};   // se construye desde ClickUp al conectar
-let MEMBERS = [];   // idem
+let CLIENTS = {};
+let MEMBERS = [];
+let ME = null;
+let AREA = "disenio";
+let boardMode = "persona"; // "persona" | "fecha"
+let boardTasks = [];
+let boardLoadSeq = 0;
+let boardFailed = 0;
+let boardSources = 0;
+const doneStatusCache = {};
 
-// --- Proxy a ClickUp (evita CORS: el navegador habla con /api/clickup) ---
+// --- Proxy a ClickUp ---
 async function cu(path, method = "GET", body = null) {
   const r = await fetch(`/api/clickup?path=${encodeURIComponent(path)}`, {
     method,
@@ -187,6 +271,10 @@ async function cu(path, method = "GET", body = null) {
   return d;
 }
 
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
 function listKeyFor(listName) {
   const n = listName.toLowerCase();
   if (n.includes("paid")) return "paid";
@@ -195,6 +283,14 @@ function listKeyFor(listName) {
   if (n.includes("admin")) return "admin";
   if (n.includes("desarrollo") || n.includes("web")) return "desweb";
   return null;
+}
+
+function splitEmoji(folderName) {
+  const parts = folderName.trim().split(/\s+/);
+  if (parts.length > 1 && /^[^\p{L}\p{N}]+$/u.test(parts[0])) {
+    return {emoji: parts[0], name: parts.slice(1).join(" ")};
+  }
+  return {emoji: "🏢", name: folderName.trim()};
 }
 
 // Busca el cliente por key exacta o por primera palabra; exige match único
@@ -208,20 +304,11 @@ function findClient(rawKey) {
   return cands.length === 1 ? CLIENTS[cands[0]] : null;
 }
 
-function splitEmoji(folderName) {
-  const parts = folderName.trim().split(/\s+/);
-  if (parts.length > 1 && /^[^\p{L}\p{N}]+$/u.test(parts[0])) {
-    return {emoji: parts[0], name: parts.slice(1).join(" ")};
-  }
-  return {emoji: "🏢", name: folderName.trim()};
-}
-
-const OPS_FOLDER_ID = "901318180618"; // 🏢 Operaciones - Color Ads LLC (interna, no es cliente)
-
 async function loadWorkspace() {
-  const [folderData, teamData] = await Promise.all([
+  const [folderData, teamData, userData] = await Promise.all([
     cu(`space/${SPACE_ID}/folder?archived=false`),
     cu("team"),
+    cu("user"),
   ]);
 
   CLIENTS = {};
@@ -241,12 +328,13 @@ async function loadWorkspace() {
   MEMBERS = (team?.members || [])
     .map(m => ({id: m.user.id, name: m.user.username || m.user.email || `Usuario ${m.user.id}`}))
     .filter(m => m.id);
+  ME = userData.user || null;
 
-  if (!Object.keys(CLIENTS).length) throw new Error("No encontré carpetas de clientes en el espacio Color Ads. ¿El token tiene acceso al workspace?");
+  if (!Object.keys(CLIENTS).length) throw new Error("No encontré carpetas de clientes en el espacio Color Ads. ¿Tu usuario tiene acceso al workspace?");
 }
 
 function buildSystemPrompt() {
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD en hora local
+  const today = new Date().toLocaleDateString("en-CA");
   return `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
 
 CLIENTES (usa el client_key EXACTO de esta lista, el que mejor corresponda al mencionado):
@@ -272,22 +360,38 @@ Si falta cliente o tarea clara:
 {"confirmed":false,"error":"..."}`;
 }
 
-// --- Setup / conexión ---
+// --- Auth ---
+function startOAuth() {
+  window.location.href = "/api/auth";
+}
+
+function toggleManual() {
+  const s = document.getElementById("manualSection");
+  s.style.display = s.style.display === "block" ? "none" : "block";
+}
+
 async function connect(token) {
   clickupToken = token;
-  const btn = document.getElementById("connectBtn");
   const errBox = document.getElementById("setupError");
-  btn.disabled = true;
-  btn.textContent = "Conectando con ClickUp...";
+  const oauthBtn = document.getElementById("oauthBtn");
+  const connectBtn = document.getElementById("connectBtn");
+  oauthBtn.disabled = connectBtn.disabled = true;
+  oauthBtn.textContent = "Conectando con ClickUp...";
   errBox.style.display = "none";
   try {
     await loadWorkspace();
     localStorage.setItem("cu_token", token);
     document.getElementById("setupCard").style.display = "none";
-    document.getElementById("chatCard").style.display  = "block";
+    document.getElementById("appShell").style.display = "block";
     document.getElementById("statusDot").classList.remove("off");
+    if (ME) {
+      const hu = document.getElementById("headerUser");
+      hu.style.display = "flex";
+      hu.textContent = ME.username || ME.email || "";
+    }
     document.getElementById("messages").innerHTML = "";
-    addMsg(`<div class="msg-system">Hola equipo 👋 Conectado a ClickUp: ${Object.keys(CLIENTS).length} clientes cargados. Escríbeme una tarea y la creo automáticamente.</div>`);
+    addMsg(`<div class="msg-system">Hola${ME?.username ? " " + esc(ME.username.split(" ")[0]) : ""} 👋 Conectado a ClickUp: ${Object.keys(CLIENTS).length} clientes. Escríbeme una tarea y la creo, o revisa el 📋 Tablero por área.</div>`);
+    renderAreaChips();
   } catch (e) {
     clickupToken = "";
     // Solo borrar el token guardado si ClickUp lo rechazó; un error de red no lo invalida
@@ -295,8 +399,8 @@ async function connect(token) {
     errBox.textContent = "✕ " + e.message;
     errBox.style.display = "block";
   }
-  btn.disabled = false;
-  btn.textContent = "Conectar y abrir el chat →";
+  oauthBtn.disabled = connectBtn.disabled = false;
+  oauthBtn.textContent = "Entrar con ClickUp →";
 }
 
 function saveToken() {
@@ -308,10 +412,21 @@ function saveToken() {
 function logout() {
   localStorage.removeItem("cu_token");
   clickupToken = "";
-  document.getElementById("chatCard").style.display = "none";
+  ME = null;
+  document.getElementById("appShell").style.display = "none";
   document.getElementById("setupCard").style.display = "block";
+  document.getElementById("headerUser").style.display = "none";
   document.getElementById("statusDot").classList.add("off");
   document.getElementById("tokenInput").value = "";
+}
+
+// --- Tabs ---
+function switchTab(tab) {
+  document.getElementById("tabChat").classList.toggle("active", tab === "chat");
+  document.getElementById("tabBoard").classList.toggle("active", tab === "board");
+  document.getElementById("chatCard").style.display = tab === "chat" ? "block" : "none";
+  document.getElementById("boardCard").style.display = tab === "board" ? "block" : "none";
+  if (tab === "board") loadBoard();
 }
 
 // --- Chat ---
@@ -408,6 +523,219 @@ async function sendMsg() {
   }
 }
 
+// --- Tablero ---
+function renderAreaChips() {
+  const bar = document.getElementById("areaChips");
+  bar.innerHTML = "";
+  for (const def of LIST_DEFS) {
+    const b = document.createElement("button");
+    b.className = "area-chip" + (def.key === AREA ? " active" : "");
+    b.textContent = def.chip;
+    b.onclick = () => { AREA = def.key; renderAreaChips(); loadBoard(); };
+    bar.appendChild(b);
+  }
+  const spacer = document.createElement("div");
+  spacer.className = "spacer";
+  bar.appendChild(spacer);
+
+  const toggle = document.createElement("div");
+  toggle.className = "mode-toggle";
+  for (const [mode, label] of [["persona","Por persona"],["fecha","Por fecha"]]) {
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.className = boardMode === mode ? "active" : "";
+    b.onclick = () => { boardMode = mode; renderAreaChips(); renderBoard(); };
+    toggle.appendChild(b);
+  }
+  bar.appendChild(toggle);
+
+  const refresh = document.createElement("button");
+  refresh.className = "refresh-btn";
+  refresh.textContent = "↻";
+  refresh.title = "Actualizar";
+  refresh.onclick = () => loadBoard();
+  bar.appendChild(refresh);
+}
+
+async function loadBoard() {
+  const seq = ++boardLoadSeq;
+  const body = document.getElementById("boardBody");
+  document.getElementById("boardSummary").style.display = "none";
+  body.innerHTML = `<div class="board-loading">Cargando ${esc(LIST_LABELS[AREA])} de todos los clientes...</div>`;
+
+  const sources = Object.values(CLIENTS)
+    .map(c => ({listId: c.lists[AREA], client: c}))
+    .filter(x => x.listId);
+
+  let failed = 0;
+  const results = await Promise.all(sources.map(async s => {
+    try {
+      const d = await cu(`list/${s.listId}/task`);
+      return (d.tasks || []).map(t => ({task: t, client: s.client, listId: s.listId}));
+    } catch { failed++; return []; }
+  }));
+
+  if (seq !== boardLoadSeq) return; // el usuario cambió de área mientras cargaba
+  boardTasks = results.flat();
+  boardFailed = failed;
+  boardSources = sources.length;
+  renderBoard();
+}
+
+function dayStart(d) { const x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+
+function dueInfo(t) {
+  if (!t.due_date) return {ts: null, cls: "", label: "Sin fecha"};
+  const ts = Number(t.due_date);
+  const today = dayStart(new Date());
+  const tomorrow = today + 86400000;
+  const due = dayStart(new Date(ts));
+  const label = new Date(ts).toLocaleDateString("es-CO", {weekday:"short", day:"numeric", month:"short"});
+  if (due < today) return {ts, cls: "late", label};
+  if (due === today) return {ts, cls: "today", label: "Hoy"};
+  if (due === tomorrow) return {ts, cls: "", label: "Mañana"};
+  return {ts, cls: "", label};
+}
+
+function taskRow(item) {
+  const t = item.task, c = item.client;
+  const info = dueInfo(t);
+  const a = (t.assignees || [])[0];
+  const initials = a ? (a.initials || a.username?.slice(0,2) || "?") : null;
+  const dateVal = info.ts ? new Date(info.ts).toLocaleDateString("en-CA") : "";
+  return `<div class="trow" id="trow-${esc(t.id)}">
+    <div class="trow-status" style="background:${esc(t.status?.color || "#555")}"></div>
+    <div class="trow-main">
+      <a class="trow-name" href="${t.url && t.url.startsWith("https://") ? esc(t.url) : "#"}" target="_blank">${esc(t.name)}</a>
+      <div class="trow-sub">
+        <span class="trow-client">${c.emoji} ${esc(c.name)}</span>
+        <span>${esc(t.status?.status || "")}</span>
+        ${a && boardMode !== "persona" ? `<span>· ${esc(a.username || "")}</span>` : ""}
+      </div>
+    </div>
+    ${initials ? `<div class="trow-assignee" title="${esc(a.username||"")}" ${a.color?`style="background:${esc(a.color)}22;color:${esc(a.color)}"`:""}>${esc(initials.toUpperCase())}</div>` : ""}
+    <label class="date-chip ${info.cls}" title="Cambiar fecha de entrega">
+      ${info.label}
+      <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/>
+    </label>
+    <button class="done-btn" onclick="markDone('${esc(t.id)}', '${esc(item.listId)}', this)">✓ Listo</button>
+  </div>`;
+}
+
+function sortByDue(items) {
+  return items.slice().sort((x, y) => {
+    const a = x.task.due_date ? Number(x.task.due_date) : Infinity;
+    const b = y.task.due_date ? Number(y.task.due_date) : Infinity;
+    return a - b;
+  });
+}
+
+function renderBoard() {
+  const body = document.getElementById("boardBody");
+  const summary = document.getElementById("boardSummary");
+
+  const today = dayStart(new Date());
+  const late = boardTasks.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today);
+  const forToday = boardTasks.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) === today);
+  summary.style.display = "flex";
+  summary.innerHTML = `<span><b>${boardTasks.length}</b> tareas abiertas</span>
+    <span class="sum-late"><b>${late.length}</b> vencidas</span>
+    <span class="sum-today"><b>${forToday.length}</b> para hoy</span>
+    ${boardFailed ? `<span style="color:#a06030">⚠ ${boardFailed} lista${boardFailed>1?"s":""} no cargaron</span>` : ""}`;
+
+  if (!boardTasks.length) {
+    body.innerHTML = boardFailed && boardFailed === boardSources
+      ? `<div class="board-empty" style="color:#854040">✕ No se pudo cargar el tablero. Revisa tu conexión o vuelve a iniciar sesión.</div>`
+      : `<div class="board-empty">No hay tareas abiertas de ${esc(LIST_LABELS[AREA])} 🎉</div>`;
+    return;
+  }
+
+  let html = "";
+  if (boardMode === "persona") {
+    const groups = new Map();
+    for (const item of boardTasks) {
+      const a = (item.task.assignees || [])[0];
+      const key = a ? String(a.id) : "zz-sin";
+      if (!groups.has(key)) groups.set(key, {who: a, items: []});
+      groups.get(key).items.push(item);
+    }
+    const sorted = [...groups.values()].sort((g1, g2) => {
+      if (!g1.who) return 1; if (!g2.who) return -1;
+      return (g1.who.username || "").localeCompare(g2.who.username || "");
+    });
+    for (const g of sorted) {
+      const lateCount = g.items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today).length;
+      const initials = g.who ? (g.who.initials || g.who.username?.slice(0,2) || "?") : "—";
+      html += `<div class="group-header">
+        <div class="group-avatar" ${g.who?.color?`style="background:${esc(g.who.color)}22;color:${esc(g.who.color)}"`:""}>${esc(String(initials).toUpperCase())}</div>
+        <span class="group-title">${g.who ? esc(g.who.username || "") : "Sin asignar"}</span>
+        <span class="group-count">${g.items.length}</span>
+        ${lateCount ? `<span class="group-late">${lateCount} vencida${lateCount>1?"s":""}</span>` : ""}
+      </div>`;
+      html += sortByDue(g.items).map(taskRow).join("");
+    }
+  } else {
+    const buckets = [
+      {title: "🔴 Vencidas", color:"#e05252", test: ts => ts !== null && ts < today},
+      {title: "🟠 Hoy", color:"#e0a052", test: ts => ts === today},
+      {title: "🟡 Mañana", color:"#d6c454", test: ts => ts === today + 86400000},
+      {title: "Esta semana", color:"#8899cc", test: ts => ts !== null && ts > today + 86400000 && ts <= today + 7*86400000},
+      {title: "Más adelante", color:"#667", test: ts => ts !== null && ts > today + 7*86400000},
+      {title: "Sin fecha", color:"#555", test: ts => ts === null},
+    ];
+    for (const b of buckets) {
+      const items = boardTasks.filter(i => {
+        const ts = i.task.due_date ? dayStart(new Date(Number(i.task.due_date))) : null;
+        return b.test(ts);
+      });
+      if (!items.length) continue;
+      html += `<div class="bucket-header"><span class="bucket-title" style="color:${b.color}">${b.title}</span><span class="group-count">${items.length}</span></div>`;
+      html += sortByDue(items).map(taskRow).join("");
+    }
+  }
+  body.innerHTML = html;
+}
+
+async function doneStatusFor(listId) {
+  if (!doneStatusCache[listId]) {
+    const d = await cu(`list/${listId}`);
+    const s = (d.statuses || []).find(s => s.type === "closed" || s.type === "done");
+    doneStatusCache[listId] = s ? s.status : "complete";
+  }
+  return doneStatusCache[listId];
+}
+
+async function markDone(taskId, listId, btn) {
+  btn.disabled = true;
+  btn.textContent = "...";
+  try {
+    const status = await doneStatusFor(listId);
+    await cu(`task/${taskId}`, "PUT", {status});
+    boardTasks = boardTasks.filter(i => i.task.id !== taskId);
+    const row = document.getElementById(`trow-${taskId}`);
+    if (row) { row.classList.add("removing"); setTimeout(renderBoard, 300); }
+    else renderBoard();
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "✓ Listo";
+    alert("No se pudo completar la tarea: " + e.message);
+  }
+}
+
+async function changeDate(taskId, dateStr) {
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item || !dateStr) return;
+  const [y, mo, da] = dateStr.split("-").map(Number);
+  const ts = new Date(y, mo - 1, da, 12).getTime();
+  try {
+    await cu(`task/${taskId}`, "PUT", {due_date: ts, due_date_time: false});
+    item.task.due_date = String(ts);
+    renderBoard();
+  } catch (e) {
+    alert("No se pudo cambiar la fecha: " + e.message);
+  }
+}
+
 // --- New Client Modal ---
 function openNewClient() {
   const row = document.getElementById("emojiRow");
@@ -460,6 +788,7 @@ async function createClient() {
     try { await loadWorkspace(); } catch { synced = false; }
 
     closeModal();
+    switchTab("chat"); // la confirmación se muestra en el chat; asegurarse de que sea visible
     if (synced && !CLIENTS[name.toLowerCase()]) {
       addMsg(`<div class="msg-error">⚠ El cliente quedó creado en ClickUp, pero la app lo oculta (los nombres que terminan en "Desactivado" no se muestran). Revísalo directo en ClickUp.</div>`);
     } else {
@@ -478,6 +807,7 @@ async function createClient() {
     let hint = "";
     if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas en el Space (los invitados no pueden) — pídele a un admin que cree el cliente o que suba tus permisos en ClickUp.";
     else if (e.ecode === "CAT_014" || /name taken/i.test(e.message)) hint = " Ya existe una carpeta con un nombre parecido en ClickUp — revísala allá.";
+    switchTab("chat");
     addMsg(`<div class="msg-error">✕ Error creando el cliente: ${esc(e.message)}.${esc(hint)}</div>`);
   }
 
@@ -485,18 +815,26 @@ async function createClient() {
   btn.textContent = "Crear cliente en ClickUp →";
 }
 
-function esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
 document.getElementById("tokenInput").addEventListener("keydown", e => { if(e.key==="Enter") saveToken(); });
 
-// Token guardado → reconectar automáticamente
-const stored = localStorage.getItem("cu_token");
-if (stored) {
-  document.getElementById("tokenInput").value = stored;
-  connect(stored);
-}
+// --- Arranque: token del hash (OAuth), error de OAuth, o token guardado ---
+(function init() {
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  if (hash.get("cu_token")) {
+    history.replaceState(null, "", window.location.pathname);
+    connect(hash.get("cu_token"));
+    return;
+  }
+  if (hash.get("auth_error")) {
+    history.replaceState(null, "", window.location.pathname);
+    const errBox = document.getElementById("setupError");
+    errBox.textContent = "✕ " + hash.get("auth_error");
+    errBox.style.display = "block";
+    return;
+  }
+  const stored = localStorage.getItem("cu_token");
+  if (stored) connect(stored);
+})();
 </script>
 </body>
 </html>
