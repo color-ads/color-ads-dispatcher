@@ -6,16 +6,18 @@
 <title>Color Ads — Task Dispatcher</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e2e2e2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
-.container{width:100%;max-width:520px}
-.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e2e2e2;min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
+.container{width:100%;max-width:960px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
 .header-icon{width:38px;height:38px;border-radius:10px;background:#161625;border:1px solid #252540;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .header h1{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.2px}
 .header p{font-size:12px;color:#555;margin-top:2px}
-.dot{width:7px;height:7px;border-radius:50%;background:#22c55e;margin-left:auto;flex-shrink:0}
+.header-user{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:#666}
+.dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0}
 .dot.off{background:#3a3a3a}
 .card{background:#111;border:1px solid #1c1c1c;border-radius:16px;overflow:hidden}
-.setup-body{padding:20px}
+.login-card{max-width:520px;margin:40px auto 0}
+.setup-body{padding:24px}
 .setup-body h2{font-size:14px;font-weight:500;color:#ccc;margin-bottom:5px}
 .setup-body .sub{font-size:12px;color:#444;line-height:1.5;margin-bottom:16px}
 .setup-body .sub a{color:#4f8ef7;text-decoration:none}
@@ -24,20 +26,35 @@ input[type=text]{font-family:inherit}
 input:focus{border-color:#333}
 input::placeholder{color:#333}
 input:disabled{opacity:.5;cursor:not-allowed}
-.btn{width:100%;margin-top:10px;padding:10px 16px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn{width:100%;margin-top:10px;padding:11px 16px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
 .btn:hover{background:#1e1e38}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.examples{margin-top:16px;background:#0d0d0d;border-radius:8px;padding:12px}
-.examples p{font-size:11px;color:#444;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-.examples span{display:block;font-size:12px;color:#3d3d3d;line-height:1.7}
+.btn-primary{background:#4f8ef7;border-color:#4f8ef7;color:#fff;font-size:14px}
+.btn-primary:hover{background:#3d7ce6}
+.setup-error{display:none;margin-top:10px;background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:12px;color:#854040}
+.manual-toggle{display:block;text-align:center;margin-top:14px;font-size:12px;color:#444;cursor:pointer;background:none;border:none;width:100%}
+.manual-toggle:hover{color:#666}
+.manual-section{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #1a1a1a}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{padding:8px 16px;background:#111;border:1px solid #1c1c1c;border-radius:10px;color:#666;font-size:13px;cursor:pointer;transition:all .15s}
+.tab:hover{color:#999}
+.tab.active{background:#161625;border-color:#252540;color:#9ab0f5;font-weight:500}
+.tab-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.token-btn{padding:6px 12px;background:#141414;border:1px solid #242424;border-radius:8px;color:#666;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.token-btn:hover{background:#1a1a1a;color:#999}
+.new-client-btn{padding:6px 12px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:8px;color:#22c55e;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.new-client-btn:hover{background:#111f11}
+
+/* Chat */
+#chatCard{max-width:560px;margin:0 auto}
 .chat-header{padding:10px 14px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px}
 .chat-header span{font-size:13px;font-weight:500;color:#ccc;flex:1}
-.new-client-btn{padding:5px 10px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;color:#22c55e;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
-.new-client-btn:hover{background:#111f11}
 .messages{height:400px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
-.messages::-webkit-scrollbar{width:4px}
-.messages::-webkit-scrollbar-track{background:transparent}
-.messages::-webkit-scrollbar-thumb{background:#1e1e1e;border-radius:4px}
+.messages::-webkit-scrollbar,.board-body::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-track,.board-body::-webkit-scrollbar-track{background:transparent}
+.messages::-webkit-scrollbar-thumb,.board-body::-webkit-scrollbar-thumb{background:#1e1e1e;border-radius:4px}
 .msg-system{background:#141414;border-radius:8px;padding:10px 12px;font-size:13px;color:#555;line-height:1.5}
 .msg-user{align-self:flex-end;background:#161625;border:1px solid #252540;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;color:#9ab0f5;max-width:85%}
 .msg-error{background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:13px;color:#854040}
@@ -66,8 +83,54 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .send-btn{padding:9px 14px;background:#161625;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;cursor:pointer;white-space:nowrap;transition:background .15s}
 .send-btn:hover{background:#1c1c30}
 .send-btn:disabled{opacity:.4;cursor:not-allowed}
+.examples{margin-top:16px;background:#0d0d0d;border-radius:8px;padding:12px}
+.examples p{font-size:11px;color:#444;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.examples span{display:block;font-size:12px;color:#3d3d3d;line-height:1.7}
 
-/* New client modal overlay */
+/* Board */
+.board-toolbar{padding:12px 14px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.area-chip{padding:6px 12px;background:#0d0d0d;border:1px solid #242424;border-radius:20px;color:#666;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.area-chip:hover{color:#999;border-color:#333}
+.area-chip.active{background:#161625;border-color:#4f8ef7;color:#9ab0f5;font-weight:500}
+.board-toolbar .spacer{flex:1}
+.mode-toggle{display:flex;background:#0d0d0d;border:1px solid #242424;border-radius:8px;overflow:hidden}
+.mode-toggle button{padding:6px 12px;background:none;border:none;color:#555;font-size:11px;cursor:pointer}
+.mode-toggle button.active{background:#161625;color:#9ab0f5}
+.refresh-btn{padding:6px 10px;background:#0d0d0d;border:1px solid #242424;border-radius:8px;color:#666;font-size:12px;cursor:pointer}
+.refresh-btn:hover{color:#999}
+.board-summary{padding:10px 14px;display:flex;gap:14px;font-size:12px;color:#555;border-bottom:1px solid #161616}
+.board-summary b{font-weight:600}
+.sum-late{color:#e05252}
+.sum-today{color:#e0a052}
+.board-body{max-height:640px;overflow-y:auto;padding:6px 14px 14px}
+.board-loading{padding:40px;text-align:center;color:#444;font-size:13px}
+.board-empty{padding:40px;text-align:center;color:#3a3a3a;font-size:13px}
+.group-header{display:flex;align-items:center;gap:8px;padding:14px 0 8px;position:sticky;top:0;background:#111;z-index:2}
+.group-avatar{width:22px;height:22px;border-radius:50%;background:#252540;color:#9ab0f5;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.group-title{font-size:13px;font-weight:600;color:#bbb}
+.group-count{font-size:11px;color:#444}
+.group-late{font-size:10px;background:#1a0d0d;border:1px solid #2a1515;color:#e05252;padding:2px 7px;border-radius:10px}
+.trow{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #1a1a1a;border-radius:10px;margin-bottom:6px;background:#0d0d0d;transition:opacity .3s}
+.trow.removing{opacity:0}
+.trow-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.trow-main{flex:1;min-width:0}
+.trow-name{font-size:13px;color:#ccc;line-height:1.35;text-decoration:none;display:block}
+.trow-name:hover{color:#9ab0f5}
+.trow-sub{display:flex;gap:8px;margin-top:3px;font-size:11px;color:#4a4a4a;align-items:center;flex-wrap:wrap}
+.trow-client{color:#666}
+.trow-assignee{width:20px;height:20px;border-radius:50%;background:#1c1c30;color:#8899cc;font-size:8px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.date-chip{position:relative;padding:5px 9px;background:#141414;border:1px solid #242424;border-radius:7px;font-size:11px;color:#777;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.date-chip:hover{border-color:#333;color:#aaa}
+.date-chip.late{background:#1a0d0d;border-color:#2a1515;color:#e05252}
+.date-chip.today{background:#1a140d;border-color:#2a2015;color:#e0a052}
+.date-chip input[type=date]{position:absolute;inset:0;opacity:0;cursor:pointer;color-scheme:dark;width:100%;height:100%}
+.done-btn{padding:5px 10px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:7px;color:#22c55e;font-size:11px;cursor:pointer;flex-shrink:0;transition:background .15s}
+.done-btn:hover{background:#122712}
+.done-btn:disabled{opacity:.4;cursor:wait}
+.bucket-header{display:flex;align-items:center;gap:8px;padding:14px 0 8px;position:sticky;top:0;background:#111;z-index:2}
+.bucket-title{font-size:13px;font-weight:600}
+
+/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
 .modal{background:#111;border:1px solid #222;border-radius:16px;width:100%;max-width:400px;padding:20px}
 .modal h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
@@ -85,6 +148,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .modal-create{flex:2;padding:9px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
 .modal-create:hover{background:#1e1e38}
 .modal-create:disabled{opacity:.4;cursor:not-allowed}
+@media (max-width:640px){.board-toolbar{gap:6px}.area-chip{padding:5px 9px;font-size:11px}}
 </style>
 </head>
 <body>
@@ -95,36 +159,52 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <h1>Color Ads — Task Dispatcher</h1>
       <p>Powered by Claude + ClickUp</p>
     </div>
-    <div class="dot off" id="statusDot"></div>
+    <div class="header-user" id="headerUser" style="display:none"></div>
+    <div class="dot off" id="statusDot" style="margin-left:10px"></div>
   </div>
 
-  <div class="card" id="setupCard">
+  <!-- Login -->
+  <div class="card login-card" id="setupCard">
     <div class="setup-body">
-      <h2>ClickUp Personal Token</h2>
-      <p class="sub">Encuéntralo en <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → My Settings → Apps → API Token</p>
-      <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off"/>
-      <button class="btn" onclick="saveToken()">Conectar y abrir el chat →</button>
-      <div class="examples">
-        <p>Ejemplos</p>
-        <span>→ "Tarea para Heiss: guion de contenido mayo, para Liliana"</span>
-        <span>→ "Reporte mensual Hashtag 98, Roberto, para el 20 de mayo"</span>
-        <span>→ "DOM: revisar campaña de pauta, urgente, Nico"</span>
+      <h2>Entrar al dispatcher</h2>
+      <p class="sub">Inicia sesión con tu cuenta de ClickUp del equipo Color Ads.</p>
+      <button class="btn btn-primary" id="oauthBtn" onclick="startOAuth()">Entrar con ClickUp →</button>
+      <div class="setup-error" id="setupError"></div>
+      <button class="manual-toggle" onclick="toggleManual()">¿Problemas? Usar token manual</button>
+      <div class="manual-section" id="manualSection">
+        <p class="sub">Pega tu API token personal: <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → Settings → Apps → API Token</p>
+        <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off"/>
+        <button class="btn" id="connectBtn" onclick="saveToken()">Conectar con token →</button>
       </div>
     </div>
   </div>
 
-  <div class="card" id="chatCard" style="display:none">
-    <div class="chat-header">
-      <span>Task Dispatcher</span>
-      <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
-      <div class="dot" style="margin-left:8px"></div>
+  <!-- App -->
+  <div id="appShell" style="display:none">
+    <div class="tabs">
+      <button class="tab active" id="tabChat" onclick="switchTab('chat')">⚡ Crear tareas</button>
+      <button class="tab" id="tabBoard" onclick="switchTab('board')">📋 Tablero por área</button>
+      <div class="tab-right">
+        <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
+        <button class="token-btn" onclick="logout()">Salir</button>
+      </div>
     </div>
-    <div class="messages" id="messages">
-      <div class="msg-system">Hola equipo 👋 Escríbeme una tarea y la creo en ClickUp automáticamente.</div>
+
+    <div class="card" id="chatCard">
+      <div class="chat-header"><span>Crear tareas con lenguaje natural</span><div class="dot"></div></div>
+      <div class="messages" id="messages"></div>
+      <div class="input-row">
+        <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Liliana, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
+        <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
+      </div>
     </div>
-    <div class="input-row">
-      <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Liliana, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
-      <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
+
+    <div class="card" id="boardCard" style="display:none">
+      <div class="board-toolbar" id="areaChips"></div>
+      <div class="board-summary" id="boardSummary" style="display:none"></div>
+      <div class="board-body" id="boardBody">
+        <div class="board-loading">Cargando tablero...</div>
+      </div>
     </div>
   </div>
 </div>
@@ -133,7 +213,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
 <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <h3>Agregar nuevo cliente</h3>
-    <p>Se crearán las 4 listas automáticamente en ClickUp</p>
+    <p>Se crearán la carpeta y sus 5 listas automáticamente en ClickUp</p>
     <label>Nombre del cliente</label>
     <input type="text" id="newClientName" placeholder="Ej: Restaurante El Árbol" onkeydown="if(event.key==='Enter')createClient()"/>
     <label>Emoji</label>
@@ -147,47 +227,117 @@ input:disabled{opacity:.5;cursor:not-allowed}
 
 <script>
 const SPACE_ID = "90130971239";
+const TEAM_ID  = "9013231845";
+const OPS_FOLDER_ID = "901318180618"; // 🏢 Operaciones - Color Ads LLC (interna, no es cliente)
 const EMOJIS = ["🏢","🏨","🏠","🏗️","🌿","🌴","🌳","🎯","🍸","🌸","⚙️","🚀","💡","🎨","🏪","🏬","🎪","🌟"];
 let selectedEmoji = "🏢";
 
-const CLIENTS = {
-  "hashtag 98":  {name:"Hashtag 98",        emoji:"📊", lists:{paid:"901327110437",disenio:"901327110442",estrategia:"901327110445",admin:"901327110446"}},
-  "heiss":       {name:"Heiss Hotel",        emoji:"🏨", lists:{paid:"901327110448",disenio:"901327110452",estrategia:"901327110454",admin:"901327110455"}},
-  "jalo":        {name:"Jalo Rent",          emoji:"🏠", lists:{paid:"901327110462",disenio:"901327110467",estrategia:"901327110468",admin:"901327110472"}},
-  "open":        {name:"Open Constructora",  emoji:"🏗️", lists:{paid:"901327110474",disenio:"901327110475",estrategia:"901327110477",admin:"901327110481"}},
-  "nakua":       {name:"Nakúa",              emoji:"🌿", lists:{paid:"901327110485",disenio:"901327110486",estrategia:"901327110487",admin:"901327110489"}},
-  "kundara":     {name:"Kundara",            emoji:"🏢", lists:{paid:"901327110490",disenio:"901327110492",estrategia:"901327110497",admin:"901327110499"}},
-  "palmanova":   {name:"Palmanova",          emoji:"🌴", lists:{paid:"901327110505",disenio:"901327110506",estrategia:"901327110508",admin:"901327110514"}},
-  "caney":       {name:"Caney",              emoji:"🌳", lists:{paid:"901327110550",disenio:"901327110551",estrategia:"901327110554",admin:"901327110557"}},
-  "triventto":   {name:"Triventto",          emoji:"🏙️", lists:{paid:"901327110558",disenio:"901327110561",estrategia:"901327110562",admin:"901327110564"}},
-  "sorentto":    {name:"Sorentto",           emoji:"🏡", lists:{paid:"901327110566",disenio:"901327110568",estrategia:"901327110573",admin:"901327110574"}},
-  "dom":         {name:"DOM",                emoji:"🎯", lists:{paid:"901327110575",disenio:"901327110578",estrategia:"901327110581",admin:"901327110584"}},
-  "hunters":     {name:"Hunters",            emoji:"🍸", lists:{paid:"901327110585",disenio:"901327110586",estrategia:"901327110587",admin:"901327110589"}},
-  "calle flora": {name:"Calle Flora",        emoji:"🌸", lists:{paid:"901327110590",disenio:"901327110593",estrategia:"901327110594",admin:"901327110597"}},
-  "agora tech":  {name:"Agora Tech",         emoji:"⚙️", lists:{paid:"901327110598",disenio:"901327110600",estrategia:"901327110601",admin:"901327110602"}},
-  "actual":      {name:"Actual",             emoji:"🏢", lists:{paid:"901327234891",disenio:"901327234895",estrategia:"901327234898",admin:"901327234901"}},
-};
-
-const TEAM = {
-  karen:   {id:82093636,  name:"Karen Gómez"},
-  miguel:  {id:90671147,  name:"Miguel López"},
-  liliana: {id:118053410, name:"Liliana Bohórquez"},
-  nicolas: {id:118053412, name:"Nicolás Garay"},
-  nico:    {id:118053412, name:"Nicolás Garay"},
-  sofia:   {id:118053413, name:"Sofía Ramírez"},
-  sofi:    {id:118053413, name:"Sofía Ramírez"},
-  esau:    {id:118053414, name:"Esaú Guerra"},
-  daniela: {id:null,      name:"Daniela"},
-  roberto: {id:null,      name:"Roberto Escobar"},
-};
-
+const LIST_DEFS = [
+  {key:"paid",       name:"📣 Paid Media",           chip:"📣 Paid"},
+  {key:"disenio",    name:"🎨 Diseño & Contenido",   chip:"🎨 Diseño"},
+  {key:"estrategia", name:"🧠 Estrategia & Reportes",chip:"🧠 Estrategia"},
+  {key:"admin",      name:"📋 Admin & Comunicación", chip:"📋 Admin"},
+  {key:"desweb",     name:"💻 Desarrollo Web",       chip:"💻 Web"},
+];
+const LIST_LABELS = Object.fromEntries(LIST_DEFS.map(d => [d.key, d.name.replace(/^\S+\s/, "")]));
 const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
-const LIST_LABELS  = {paid:"Paid Media", disenio:"Diseño & Contenido", estrategia:"Estrategia & Reportes", admin:"Admin & Comunicación"};
+
 let clickupToken = "";
+let CLIENTS = {};
+let MEMBERS = [];
+let ME = null;
+let AREA = "disenio";
+let boardMode = "persona"; // "persona" | "fecha"
+let boardTasks = [];
+let boardLoadSeq = 0;
+let boardFailed = 0;
+let boardSources = 0;
+const doneStatusCache = {};
 
-const SYSTEM_PROMPT = `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
+// --- Proxy a ClickUp ---
+async function cu(path, method = "GET", body = null) {
+  const r = await fetch(`/api/clickup?path=${encodeURIComponent(path)}`, {
+    method,
+    headers: {"Content-Type":"application/json","X-ClickUp-Token":clickupToken},
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const err = new Error(d.err || d.ECODE || `Error ${r.status} de ClickUp`);
+    err.status = r.status;
+    err.ecode = d.ECODE || "";
+    throw err;
+  }
+  return d;
+}
 
-CLIENTES (client_key exacto — usa siempre minúsculas):
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function listKeyFor(listName) {
+  const n = listName.toLowerCase();
+  if (n.includes("paid")) return "paid";
+  if (n.includes("dise")) return "disenio";
+  if (n.includes("estrategia")) return "estrategia";
+  if (n.includes("admin")) return "admin";
+  if (n.includes("desarrollo") || n.includes("web")) return "desweb";
+  return null;
+}
+
+function splitEmoji(folderName) {
+  const parts = folderName.trim().split(/\s+/);
+  if (parts.length > 1 && /^[^\p{L}\p{N}]+$/u.test(parts[0])) {
+    return {emoji: parts[0], name: parts.slice(1).join(" ")};
+  }
+  return {emoji: "🏢", name: folderName.trim()};
+}
+
+// Busca el cliente por key exacta o por primera palabra; exige match único
+// para no archivar tareas en el cliente equivocado (ej. "dominios..." ≠ "dom").
+function findClient(rawKey) {
+  if (!rawKey) return null;
+  const k = String(rawKey).toLowerCase().trim();
+  if (CLIENTS[k]) return CLIENTS[k];
+  const first = k.split(/\s+/)[0];
+  const cands = Object.keys(CLIENTS).filter(key => key === first || key.split(/\s+/)[0] === first);
+  return cands.length === 1 ? CLIENTS[cands[0]] : null;
+}
+
+async function loadWorkspace() {
+  const [folderData, teamData, userData] = await Promise.all([
+    cu(`space/${SPACE_ID}/folder?archived=false`),
+    cu("team"),
+    cu("user"),
+  ]);
+
+  CLIENTS = {};
+  for (const f of folderData.folders || []) {
+    if (f.id === OPS_FOLDER_ID || /desactivad[oa]\s*$/i.test(f.name)) continue;
+    const {emoji, name} = splitEmoji(f.name);
+    const lists = {};
+    for (const l of f.lists || []) {
+      const key = listKeyFor(l.name);
+      if (key && !lists[key]) lists[key] = l.id;
+    }
+    if (!Object.keys(lists).length) continue;
+    CLIENTS[name.toLowerCase()] = {name, emoji, folderId: f.id, lists};
+  }
+
+  const team = (teamData.teams || []).find(t => String(t.id) === TEAM_ID) || (teamData.teams || [])[0];
+  MEMBERS = (team?.members || [])
+    .map(m => ({id: m.user.id, name: m.user.username || m.user.email || `Usuario ${m.user.id}`}))
+    .filter(m => m.id);
+  ME = userData.user || null;
+
+  if (!Object.keys(CLIENTS).length) throw new Error("No encontré carpetas de clientes en el espacio Color Ads. ¿Tu usuario tiene acceso al workspace?");
+}
+
+function buildSystemPrompt() {
+  const today = new Date().toLocaleDateString("en-CA");
+  return `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
+
+CLIENTES (usa el client_key EXACTO de esta lista, el que mejor corresponda al mencionado):
 ${Object.keys(CLIENTS).map(k => `"${k}"`).join(", ")}
 
 TIPOS DE LISTA (list_type):
@@ -195,27 +345,88 @@ TIPOS DE LISTA (list_type):
 "disenio"    → artes, guiones, contenido, fotos, videos, diseño, creativos, copy, edición
 "estrategia" → reportes, análisis, métricas, estrategia, resultados, planificación
 "admin"      → reuniones, contratos, facturación, coordinación, llamadas, onboarding
+"desweb"     → página web, landing, sitio, desarrollo, hosting, dominio, formularios web, integraciones, SEO técnico
 
-EQUIPO (assignee_key exacto):
-"karen", "miguel", "liliana", "nicolas"/"nico", "sofia"/"sofi", "esau", "daniela", "roberto", null
+EQUIPO (usa el assignee_id numérico; reconoce apodos y nombres parciales, ej. "Nico" → Nicolás):
+${MEMBERS.map(m => `${m.id} = ${m.name}`).join("\n")}
 
 PRIORIDADES: urgent, high, normal, low — default: normal
-HOY: ${new Date().toISOString().split("T")[0]}
+HOY: ${today}
 
 Responde ÚNICAMENTE con JSON válido sin markdown:
-{"confirmed":true,"task_name":"...","client_key":"...","list_type":"...","assignee_key":"...|null","priority":"...","due_date":"YYYY-MM-DD|null","description":"..."}
+{"confirmed":true,"task_name":"...","client_key":"...","list_type":"...","assignee_id":123|null,"priority":"...","due_date":"YYYY-MM-DD|null","description":"..."}
 
 Si falta cliente o tarea clara:
 {"confirmed":false,"error":"..."}`;
+}
 
-// --- Setup ---
+// --- Auth ---
+function startOAuth() {
+  window.location.href = "/api/auth";
+}
+
+function toggleManual() {
+  const s = document.getElementById("manualSection");
+  s.style.display = s.style.display === "block" ? "none" : "block";
+}
+
+async function connect(token) {
+  clickupToken = token;
+  const errBox = document.getElementById("setupError");
+  const oauthBtn = document.getElementById("oauthBtn");
+  const connectBtn = document.getElementById("connectBtn");
+  oauthBtn.disabled = connectBtn.disabled = true;
+  oauthBtn.textContent = "Conectando con ClickUp...";
+  errBox.style.display = "none";
+  try {
+    await loadWorkspace();
+    localStorage.setItem("cu_token", token);
+    document.getElementById("setupCard").style.display = "none";
+    document.getElementById("appShell").style.display = "block";
+    document.getElementById("statusDot").classList.remove("off");
+    if (ME) {
+      const hu = document.getElementById("headerUser");
+      hu.style.display = "flex";
+      hu.textContent = ME.username || ME.email || "";
+    }
+    document.getElementById("messages").innerHTML = "";
+    addMsg(`<div class="msg-system">Hola${ME?.username ? " " + esc(ME.username.split(" ")[0]) : ""} 👋 Conectado a ClickUp: ${Object.keys(CLIENTS).length} clientes. Escríbeme una tarea y la creo, o revisa el 📋 Tablero por área.</div>`);
+    renderAreaChips();
+  } catch (e) {
+    clickupToken = "";
+    // Solo borrar el token guardado si ClickUp lo rechazó; un error de red no lo invalida
+    if (e.status === 401 || e.status === 403) localStorage.removeItem("cu_token");
+    errBox.textContent = "✕ " + e.message;
+    errBox.style.display = "block";
+  }
+  oauthBtn.disabled = connectBtn.disabled = false;
+  oauthBtn.textContent = "Entrar con ClickUp →";
+}
+
 function saveToken() {
   const val = document.getElementById("tokenInput").value.trim();
   if (!val) return;
-  clickupToken = val;
-  document.getElementById("setupCard").style.display = "none";
-  document.getElementById("chatCard").style.display  = "block";
-  document.getElementById("statusDot").classList.remove("off");
+  connect(val);
+}
+
+function logout() {
+  localStorage.removeItem("cu_token");
+  clickupToken = "";
+  ME = null;
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("setupCard").style.display = "block";
+  document.getElementById("headerUser").style.display = "none";
+  document.getElementById("statusDot").classList.add("off");
+  document.getElementById("tokenInput").value = "";
+}
+
+// --- Tabs ---
+function switchTab(tab) {
+  document.getElementById("tabChat").classList.toggle("active", tab === "chat");
+  document.getElementById("tabBoard").classList.toggle("active", tab === "board");
+  document.getElementById("chatCard").style.display = tab === "chat" ? "block" : "none";
+  document.getElementById("boardCard").style.display = tab === "board" ? "block" : "none";
+  if (tab === "board") loadBoard();
 }
 
 // --- Chat ---
@@ -244,15 +455,16 @@ async function sendMsg() {
   try {
     const cr = await fetch("/api/chat", {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
+      headers: {"Content-Type":"application/json","X-ClickUp-Token":clickupToken},
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 500,
-        system: SYSTEM_PROMPT,
+        system: buildSystemPrompt(),
         messages: [{role:"user", content:text}]
       })
     });
-    const cd = await cr.json();
+    const cd = await cr.json().catch(() => ({}));
+    if (!cr.ok) throw new Error(cd.error?.message || "El asistente no está disponible. Intenta de nuevo.");
     let raw = cd.content?.[0]?.text || "";
     raw = raw.replace(/```json\n?/gi,"").replace(/```\n?/g,"").trim();
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -268,54 +480,259 @@ async function sendMsg() {
       return;
     }
 
-    const client = CLIENTS[p.client_key];
+    const client = findClient(p.client_key);
     if (!client) {
       setLoading(false);
       addMsg(`<div class="msg-error">✕ No reconocí el cliente "${esc(p.client_key)}".</div>`);
       return;
     }
 
-    const listId   = client.lists[p.list_type] || client.lists.admin;
-    const member   = p.assignee_key && TEAM[p.assignee_key];
+    const usedType = client.lists[p.list_type] ? p.list_type
+                   : (client.lists.admin ? "admin" : Object.keys(client.lists)[0]);
+    const listId   = client.lists[usedType];
+    const member   = p.assignee_id ? MEMBERS.find(m => String(m.id) === String(p.assignee_id)) : null;
     const priority = PRIORITY_MAP[p.priority] || 3;
-    const dueTs    = p.due_date ? new Date(p.due_date).getTime() : null;
-
-    const body = {name:p.task_name, description:p.description||"", priority};
-    if (member && member.id) body.assignees = [member.id];
-    if (dueTs) body.due_date = dueTs;
-
-    const cur = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json","Authorization":clickupToken},
-      body: JSON.stringify(body)
-    });
-    const cud = await cur.json();
-    setLoading(false);
-
-    if (!cur.ok) {
-      addMsg(`<div class="msg-error">✕ ClickUp: ${esc(cud.err || "Token inválido o sin permisos")}</div>`);
-      return;
+    let dueTs = null;
+    if (p.due_date) {
+      const [y, mo, da] = p.due_date.split("-").map(Number);
+      if (y && mo && da) dueTs = new Date(y, mo - 1, da, 12).getTime(); // mediodía local: evita el corrimiento de día por UTC
     }
 
-    const pendingNote = (member && member.id === null)
-      ? `<div style="margin-top:8px;font-size:11px;color:#554422;">⚠ ${esc(member.name)} aún no activó su cuenta — tarea creada sin asignar.</div>`
-      : "";
-    const link = cud.url ? `<a href="${cud.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
+    const body = {name:p.task_name, description:p.description||"", priority};
+    if (member) body.assignees = [member.id];
+    if (dueTs) body.due_date = dueTs;
 
+    const cud = await cu(`list/${listId}/task`, "POST", body);
+    setLoading(false);
+
+    const link = cud.url ? `<a href="${cud.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
     addMsg(`<div class="msg-success">
       <div class="success-header"><div class="success-dot">✓</div><span class="success-label">Tarea creada en ClickUp</span></div>
       <p class="task-name">${esc(p.task_name)}</p>
       <div class="task-meta">
-        <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${client.name}</span>
-        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[p.list_type]||"Admin"}</span>
-        <span class="meta-key">Asignado</span><span class="meta-val">${member?member.name:"Sin asignar"}</span>
-        <span class="meta-key">Prioridad</span><span class="meta-val">${p.priority}</span>
-        ${p.due_date?`<span class="meta-key">Fecha</span><span class="meta-val">${p.due_date}</span>`:""}
-      </div>${pendingNote}${link}</div>`);
+        <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${esc(client.name)}</span>
+        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[usedType]||usedType}${usedType!==p.list_type?` <span style="color:#554422">(este cliente no tiene lista de ${esc(LIST_LABELS[p.list_type]||p.list_type)})</span>`:""}</span>
+        <span class="meta-key">Asignado</span><span class="meta-val">${member ? esc(member.name) : "Sin asignar"}</span>
+        <span class="meta-key">Prioridad</span><span class="meta-val">${esc(p.priority || "normal")}</span>
+        ${p.due_date?`<span class="meta-key">Fecha</span><span class="meta-val">${esc(p.due_date)}</span>`:""}
+      </div>${link}</div>`);
 
   } catch(e) {
     setLoading(false);
-    addMsg(`<div class="msg-error">✕ Error de conexión. Intenta de nuevo.</div>`);
+    addMsg(`<div class="msg-error">✕ ${esc(e.message || "Error de conexión. Intenta de nuevo.")}</div>`);
+  }
+}
+
+// --- Tablero ---
+function renderAreaChips() {
+  const bar = document.getElementById("areaChips");
+  bar.innerHTML = "";
+  for (const def of LIST_DEFS) {
+    const b = document.createElement("button");
+    b.className = "area-chip" + (def.key === AREA ? " active" : "");
+    b.textContent = def.chip;
+    b.onclick = () => { AREA = def.key; renderAreaChips(); loadBoard(); };
+    bar.appendChild(b);
+  }
+  const spacer = document.createElement("div");
+  spacer.className = "spacer";
+  bar.appendChild(spacer);
+
+  const toggle = document.createElement("div");
+  toggle.className = "mode-toggle";
+  for (const [mode, label] of [["persona","Por persona"],["fecha","Por fecha"]]) {
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.className = boardMode === mode ? "active" : "";
+    b.onclick = () => { boardMode = mode; renderAreaChips(); renderBoard(); };
+    toggle.appendChild(b);
+  }
+  bar.appendChild(toggle);
+
+  const refresh = document.createElement("button");
+  refresh.className = "refresh-btn";
+  refresh.textContent = "↻";
+  refresh.title = "Actualizar";
+  refresh.onclick = () => loadBoard();
+  bar.appendChild(refresh);
+}
+
+async function loadBoard() {
+  const seq = ++boardLoadSeq;
+  const body = document.getElementById("boardBody");
+  document.getElementById("boardSummary").style.display = "none";
+  body.innerHTML = `<div class="board-loading">Cargando ${esc(LIST_LABELS[AREA])} de todos los clientes...</div>`;
+
+  const sources = Object.values(CLIENTS)
+    .map(c => ({listId: c.lists[AREA], client: c}))
+    .filter(x => x.listId);
+
+  let failed = 0;
+  const results = await Promise.all(sources.map(async s => {
+    try {
+      const d = await cu(`list/${s.listId}/task`);
+      return (d.tasks || []).map(t => ({task: t, client: s.client, listId: s.listId}));
+    } catch { failed++; return []; }
+  }));
+
+  if (seq !== boardLoadSeq) return; // el usuario cambió de área mientras cargaba
+  boardTasks = results.flat();
+  boardFailed = failed;
+  boardSources = sources.length;
+  renderBoard();
+}
+
+function dayStart(d) { const x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+
+function dueInfo(t) {
+  if (!t.due_date) return {ts: null, cls: "", label: "Sin fecha"};
+  const ts = Number(t.due_date);
+  const today = dayStart(new Date());
+  const tomorrow = today + 86400000;
+  const due = dayStart(new Date(ts));
+  const label = new Date(ts).toLocaleDateString("es-CO", {weekday:"short", day:"numeric", month:"short"});
+  if (due < today) return {ts, cls: "late", label};
+  if (due === today) return {ts, cls: "today", label: "Hoy"};
+  if (due === tomorrow) return {ts, cls: "", label: "Mañana"};
+  return {ts, cls: "", label};
+}
+
+function taskRow(item) {
+  const t = item.task, c = item.client;
+  const info = dueInfo(t);
+  const a = (t.assignees || [])[0];
+  const initials = a ? (a.initials || a.username?.slice(0,2) || "?") : null;
+  const dateVal = info.ts ? new Date(info.ts).toLocaleDateString("en-CA") : "";
+  return `<div class="trow" id="trow-${esc(t.id)}">
+    <div class="trow-status" style="background:${esc(t.status?.color || "#555")}"></div>
+    <div class="trow-main">
+      <a class="trow-name" href="${t.url && t.url.startsWith("https://") ? esc(t.url) : "#"}" target="_blank">${esc(t.name)}</a>
+      <div class="trow-sub">
+        <span class="trow-client">${c.emoji} ${esc(c.name)}</span>
+        <span>${esc(t.status?.status || "")}</span>
+        ${a && boardMode !== "persona" ? `<span>· ${esc(a.username || "")}</span>` : ""}
+      </div>
+    </div>
+    ${initials ? `<div class="trow-assignee" title="${esc(a.username||"")}" ${a.color?`style="background:${esc(a.color)}22;color:${esc(a.color)}"`:""}>${esc(initials.toUpperCase())}</div>` : ""}
+    <label class="date-chip ${info.cls}" title="Cambiar fecha de entrega">
+      ${info.label}
+      <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/>
+    </label>
+    <button class="done-btn" onclick="markDone('${esc(t.id)}', '${esc(item.listId)}', this)">✓ Listo</button>
+  </div>`;
+}
+
+function sortByDue(items) {
+  return items.slice().sort((x, y) => {
+    const a = x.task.due_date ? Number(x.task.due_date) : Infinity;
+    const b = y.task.due_date ? Number(y.task.due_date) : Infinity;
+    return a - b;
+  });
+}
+
+function renderBoard() {
+  const body = document.getElementById("boardBody");
+  const summary = document.getElementById("boardSummary");
+
+  const today = dayStart(new Date());
+  const late = boardTasks.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today);
+  const forToday = boardTasks.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) === today);
+  summary.style.display = "flex";
+  summary.innerHTML = `<span><b>${boardTasks.length}</b> tareas abiertas</span>
+    <span class="sum-late"><b>${late.length}</b> vencidas</span>
+    <span class="sum-today"><b>${forToday.length}</b> para hoy</span>
+    ${boardFailed ? `<span style="color:#a06030">⚠ ${boardFailed} lista${boardFailed>1?"s":""} no cargaron</span>` : ""}`;
+
+  if (!boardTasks.length) {
+    body.innerHTML = boardFailed && boardFailed === boardSources
+      ? `<div class="board-empty" style="color:#854040">✕ No se pudo cargar el tablero. Revisa tu conexión o vuelve a iniciar sesión.</div>`
+      : `<div class="board-empty">No hay tareas abiertas de ${esc(LIST_LABELS[AREA])} 🎉</div>`;
+    return;
+  }
+
+  let html = "";
+  if (boardMode === "persona") {
+    const groups = new Map();
+    for (const item of boardTasks) {
+      const a = (item.task.assignees || [])[0];
+      const key = a ? String(a.id) : "zz-sin";
+      if (!groups.has(key)) groups.set(key, {who: a, items: []});
+      groups.get(key).items.push(item);
+    }
+    const sorted = [...groups.values()].sort((g1, g2) => {
+      if (!g1.who) return 1; if (!g2.who) return -1;
+      return (g1.who.username || "").localeCompare(g2.who.username || "");
+    });
+    for (const g of sorted) {
+      const lateCount = g.items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today).length;
+      const initials = g.who ? (g.who.initials || g.who.username?.slice(0,2) || "?") : "—";
+      html += `<div class="group-header">
+        <div class="group-avatar" ${g.who?.color?`style="background:${esc(g.who.color)}22;color:${esc(g.who.color)}"`:""}>${esc(String(initials).toUpperCase())}</div>
+        <span class="group-title">${g.who ? esc(g.who.username || "") : "Sin asignar"}</span>
+        <span class="group-count">${g.items.length}</span>
+        ${lateCount ? `<span class="group-late">${lateCount} vencida${lateCount>1?"s":""}</span>` : ""}
+      </div>`;
+      html += sortByDue(g.items).map(taskRow).join("");
+    }
+  } else {
+    const buckets = [
+      {title: "🔴 Vencidas", color:"#e05252", test: ts => ts !== null && ts < today},
+      {title: "🟠 Hoy", color:"#e0a052", test: ts => ts === today},
+      {title: "🟡 Mañana", color:"#d6c454", test: ts => ts === today + 86400000},
+      {title: "Esta semana", color:"#8899cc", test: ts => ts !== null && ts > today + 86400000 && ts <= today + 7*86400000},
+      {title: "Más adelante", color:"#667", test: ts => ts !== null && ts > today + 7*86400000},
+      {title: "Sin fecha", color:"#555", test: ts => ts === null},
+    ];
+    for (const b of buckets) {
+      const items = boardTasks.filter(i => {
+        const ts = i.task.due_date ? dayStart(new Date(Number(i.task.due_date))) : null;
+        return b.test(ts);
+      });
+      if (!items.length) continue;
+      html += `<div class="bucket-header"><span class="bucket-title" style="color:${b.color}">${b.title}</span><span class="group-count">${items.length}</span></div>`;
+      html += sortByDue(items).map(taskRow).join("");
+    }
+  }
+  body.innerHTML = html;
+}
+
+async function doneStatusFor(listId) {
+  if (!doneStatusCache[listId]) {
+    const d = await cu(`list/${listId}`);
+    const s = (d.statuses || []).find(s => s.type === "closed" || s.type === "done");
+    doneStatusCache[listId] = s ? s.status : "complete";
+  }
+  return doneStatusCache[listId];
+}
+
+async function markDone(taskId, listId, btn) {
+  btn.disabled = true;
+  btn.textContent = "...";
+  try {
+    const status = await doneStatusFor(listId);
+    await cu(`task/${taskId}`, "PUT", {status});
+    boardTasks = boardTasks.filter(i => i.task.id !== taskId);
+    const row = document.getElementById(`trow-${taskId}`);
+    if (row) { row.classList.add("removing"); setTimeout(renderBoard, 300); }
+    else renderBoard();
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "✓ Listo";
+    alert("No se pudo completar la tarea: " + e.message);
+  }
+}
+
+async function changeDate(taskId, dateStr) {
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item || !dateStr) return;
+  const [y, mo, da] = dateStr.split("-").map(Number);
+  const ts = new Date(y, mo - 1, da, 12).getTime();
+  try {
+    await cu(`task/${taskId}`, "PUT", {due_date: ts, due_date_time: false});
+    item.task.due_date = String(ts);
+    renderBoard();
+  } catch (e) {
+    alert("No se pudo cambiar la fecha: " + e.message);
   }
 }
 
@@ -340,66 +757,84 @@ function closeModal() {
 }
 
 async function createClient() {
+  const btn = document.getElementById("createBtn");
+  if (btn.disabled) return; // el Enter del input no debe disparar un segundo intento en paralelo
   const name = document.getElementById("newClientName").value.trim();
   if (!name) { document.getElementById("newClientName").focus(); return; }
-
-  const btn = document.getElementById("createBtn");
   btn.disabled = true;
-  btn.textContent = "Creando en ClickUp...";
 
   try {
-    // 1. Create folder in ClickUp
-    const folderRes = await fetch(`https://api.clickup.com/api/v2/space/${SPACE_ID}/folder`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json","Authorization":clickupToken},
-      body: JSON.stringify({name: `${selectedEmoji} ${name}`})
-    });
-    const folder = await folderRes.json();
-    if (!folderRes.ok) throw new Error(folder.err || "Error creando carpeta");
-
-    // 2. Create 4 lists
-    const lists = ["📣 Paid Media","🎨 Diseño & Contenido","🧠 Estrategia & Reportes","📋 Admin & Comunicación"];
-    const listKeys = ["paid","disenio","estrategia","admin"];
-    const listIds = {};
-
-    for (let i = 0; i < lists.length; i++) {
-      const lr = await fetch(`https://api.clickup.com/api/v2/folder/${folder.id}/list`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":clickupToken},
-        body: JSON.stringify({name: lists[i]})
-      });
-      const ld = await lr.json();
-      listIds[listKeys[i]] = ld.id;
+    btn.textContent = "Creando carpeta...";
+    let folder;
+    try {
+      folder = await cu(`space/${SPACE_ID}/folder`, "POST", {name: `${selectedEmoji} ${name}`});
+    } catch (e) {
+      if (!(e.ecode === "CAT_014" || /name taken/i.test(e.message))) throw e;
+      // La carpeta ya existe (p. ej. quedó a medias en un intento anterior): adoptarla y completar lo que falte
+      const d = await cu(`space/${SPACE_ID}/folder?archived=false`);
+      folder = (d.folders || []).find(f => splitEmoji(f.name).name.toLowerCase() === name.toLowerCase());
+      if (!folder) throw e;
     }
 
-    // 3. Add to CLIENTS in memory
-    const key = name.toLowerCase().trim();
-    CLIENTS[key] = {name, emoji: selectedEmoji, lists: listIds};
+    const existing = new Set((folder.lists || []).map(l => listKeyFor(l.name)).filter(Boolean));
+    const missing = LIST_DEFS.filter(def => !existing.has(def.key));
+    for (let i = 0; i < missing.length; i++) {
+      btn.textContent = `Creando lista ${i + 1}/${missing.length}...`;
+      await cu(`folder/${folder.id}/list`, "POST", {name: missing[i].name});
+    }
+
+    btn.textContent = "Sincronizando...";
+    let synced = true;
+    try { await loadWorkspace(); } catch { synced = false; }
 
     closeModal();
-    addMsg(`<div class="msg-client">
-      <div class="success-header"><div class="client-dot">✦</div><span class="client-label">Nuevo cliente creado</span></div>
-      <p class="task-name">${selectedEmoji} ${esc(name)}</p>
-      <div class="task-meta">
-        <span class="meta-key">En ClickUp</span><span class="meta-val">✓ Carpeta + 4 listas</span>
-        <span class="meta-key">En la app</span><span class="meta-val">✓ Disponible ahora</span>
-      </div>
-      <div style="margin-top:10px;font-size:12px;color:#3a3a3a;">Ya puedes crear tareas para ${esc(name)} en este chat.</div>
-    </div>`);
+    switchTab("chat"); // la confirmación se muestra en el chat; asegurarse de que sea visible
+    if (synced && !CLIENTS[name.toLowerCase()]) {
+      addMsg(`<div class="msg-error">⚠ El cliente quedó creado en ClickUp, pero la app lo oculta (los nombres que terminan en "Desactivado" no se muestran). Revísalo directo en ClickUp.</div>`);
+    } else {
+      addMsg(`<div class="msg-client">
+        <div class="success-header"><div class="client-dot">✦</div><span class="client-label">Nuevo cliente creado</span></div>
+        <p class="task-name">${selectedEmoji} ${esc(name)}</p>
+        <div class="task-meta">
+          <span class="meta-key">En ClickUp</span><span class="meta-val">✓ Carpeta + ${LIST_DEFS.length} listas</span>
+          <span class="meta-key">En la app</span><span class="meta-val">${synced ? "✓ Disponible para todo el equipo" : "⚠ Recarga la página para verlo"}</span>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#3a3a3a;">Ya puedes crear tareas para ${esc(name)} en este chat.</div>
+      </div>`);
+    }
 
   } catch(e) {
-    addMsg(`<div class="msg-error">✕ Error: ${esc(e.message)}</div>`);
+    let hint = "";
+    if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas en el Space (los invitados no pueden) — pídele a un admin que cree el cliente o que suba tus permisos en ClickUp.";
+    else if (e.ecode === "CAT_014" || /name taken/i.test(e.message)) hint = " Ya existe una carpeta con un nombre parecido en ClickUp — revísala allá.";
+    switchTab("chat");
+    addMsg(`<div class="msg-error">✕ Error creando el cliente: ${esc(e.message)}.${esc(hint)}</div>`);
   }
 
   btn.disabled = false;
   btn.textContent = "Crear cliente en ClickUp →";
 }
 
-function esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
-
 document.getElementById("tokenInput").addEventListener("keydown", e => { if(e.key==="Enter") saveToken(); });
+
+// --- Arranque: token del hash (OAuth), error de OAuth, o token guardado ---
+(function init() {
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  if (hash.get("cu_token")) {
+    history.replaceState(null, "", window.location.pathname);
+    connect(hash.get("cu_token"));
+    return;
+  }
+  if (hash.get("auth_error")) {
+    history.replaceState(null, "", window.location.pathname);
+    const errBox = document.getElementById("setupError");
+    errBox.textContent = "✕ " + hash.get("auth_error");
+    errBox.style.display = "block";
+    return;
+  }
+  const stored = localStorage.getItem("cu_token");
+  if (stored) connect(stored);
+})();
 </script>
 </body>
 </html>
