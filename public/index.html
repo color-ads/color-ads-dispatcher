@@ -27,6 +27,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .btn{width:100%;margin-top:10px;padding:10px 16px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
 .btn:hover{background:#1e1e38}
 .btn:disabled{opacity:.4;cursor:not-allowed}
+.setup-error{display:none;margin-top:10px;background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:12px;color:#854040}
 .examples{margin-top:16px;background:#0d0d0d;border-radius:8px;padding:12px}
 .examples p{font-size:11px;color:#444;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
 .examples span{display:block;font-size:12px;color:#3d3d3d;line-height:1.7}
@@ -34,6 +35,8 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .chat-header span{font-size:13px;font-weight:500;color:#ccc;flex:1}
 .new-client-btn{padding:5px 10px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:6px;color:#22c55e;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
 .new-client-btn:hover{background:#111f11}
+.token-btn{padding:5px 10px;background:#141414;border:1px solid #242424;border-radius:6px;color:#666;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.token-btn:hover{background:#1a1a1a;color:#999}
 .messages{height:400px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
 .messages::-webkit-scrollbar{width:4px}
 .messages::-webkit-scrollbar-track{background:transparent}
@@ -103,12 +106,13 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <h2>ClickUp Personal Token</h2>
       <p class="sub">Encuéntralo en <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → My Settings → Apps → API Token</p>
       <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off"/>
-      <button class="btn" onclick="saveToken()">Conectar y abrir el chat →</button>
+      <button class="btn" id="connectBtn" onclick="saveToken()">Conectar y abrir el chat →</button>
+      <div class="setup-error" id="setupError"></div>
       <div class="examples">
         <p>Ejemplos</p>
         <span>→ "Tarea para Heiss: guion de contenido mayo, para Liliana"</span>
-        <span>→ "Reporte mensual Hashtag 98, Roberto, para el 20 de mayo"</span>
-        <span>→ "DOM: revisar campaña de pauta, urgente, Nico"</span>
+        <span>→ "Reporte mensual Hashtag 98, para el 20 de agosto"</span>
+        <span>→ "Hunters: ajustar landing de reservas, urgente, Nico"</span>
       </div>
     </div>
   </div>
@@ -117,11 +121,10 @@ input:disabled{opacity:.5;cursor:not-allowed}
     <div class="chat-header">
       <span>Task Dispatcher</span>
       <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
+      <button class="token-btn" onclick="logout()">Cambiar token</button>
       <div class="dot" style="margin-left:8px"></div>
     </div>
-    <div class="messages" id="messages">
-      <div class="msg-system">Hola equipo 👋 Escríbeme una tarea y la creo en ClickUp automáticamente.</div>
-    </div>
+    <div class="messages" id="messages"></div>
     <div class="input-row">
       <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Liliana, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
       <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
@@ -133,7 +136,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
 <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <h3>Agregar nuevo cliente</h3>
-    <p>Se crearán las 4 listas automáticamente en ClickUp</p>
+    <p>Se crearán la carpeta y sus 5 listas automáticamente en ClickUp</p>
     <label>Nombre del cliente</label>
     <input type="text" id="newClientName" placeholder="Ej: Restaurante El Árbol" onkeydown="if(event.key==='Enter')createClient()"/>
     <label>Emoji</label>
@@ -147,47 +150,106 @@ input:disabled{opacity:.5;cursor:not-allowed}
 
 <script>
 const SPACE_ID = "90130971239";
+const TEAM_ID  = "9013231845";
 const EMOJIS = ["🏢","🏨","🏠","🏗️","🌿","🌴","🌳","🎯","🍸","🌸","⚙️","🚀","💡","🎨","🏪","🏬","🎪","🌟"];
 let selectedEmoji = "🏢";
 
-const CLIENTS = {
-  "hashtag 98":  {name:"Hashtag 98",        emoji:"📊", lists:{paid:"901327110437",disenio:"901327110442",estrategia:"901327110445",admin:"901327110446"}},
-  "heiss":       {name:"Heiss Hotel",        emoji:"🏨", lists:{paid:"901327110448",disenio:"901327110452",estrategia:"901327110454",admin:"901327110455"}},
-  "jalo":        {name:"Jalo Rent",          emoji:"🏠", lists:{paid:"901327110462",disenio:"901327110467",estrategia:"901327110468",admin:"901327110472"}},
-  "open":        {name:"Open Constructora",  emoji:"🏗️", lists:{paid:"901327110474",disenio:"901327110475",estrategia:"901327110477",admin:"901327110481"}},
-  "nakua":       {name:"Nakúa",              emoji:"🌿", lists:{paid:"901327110485",disenio:"901327110486",estrategia:"901327110487",admin:"901327110489"}},
-  "kundara":     {name:"Kundara",            emoji:"🏢", lists:{paid:"901327110490",disenio:"901327110492",estrategia:"901327110497",admin:"901327110499"}},
-  "palmanova":   {name:"Palmanova",          emoji:"🌴", lists:{paid:"901327110505",disenio:"901327110506",estrategia:"901327110508",admin:"901327110514"}},
-  "caney":       {name:"Caney",              emoji:"🌳", lists:{paid:"901327110550",disenio:"901327110551",estrategia:"901327110554",admin:"901327110557"}},
-  "triventto":   {name:"Triventto",          emoji:"🏙️", lists:{paid:"901327110558",disenio:"901327110561",estrategia:"901327110562",admin:"901327110564"}},
-  "sorentto":    {name:"Sorentto",           emoji:"🏡", lists:{paid:"901327110566",disenio:"901327110568",estrategia:"901327110573",admin:"901327110574"}},
-  "dom":         {name:"DOM",                emoji:"🎯", lists:{paid:"901327110575",disenio:"901327110578",estrategia:"901327110581",admin:"901327110584"}},
-  "hunters":     {name:"Hunters",            emoji:"🍸", lists:{paid:"901327110585",disenio:"901327110586",estrategia:"901327110587",admin:"901327110589"}},
-  "calle flora": {name:"Calle Flora",        emoji:"🌸", lists:{paid:"901327110590",disenio:"901327110593",estrategia:"901327110594",admin:"901327110597"}},
-  "agora tech":  {name:"Agora Tech",         emoji:"⚙️", lists:{paid:"901327110598",disenio:"901327110600",estrategia:"901327110601",admin:"901327110602"}},
-  "actual":      {name:"Actual",             emoji:"🏢", lists:{paid:"901327234891",disenio:"901327234895",estrategia:"901327234898",admin:"901327234901"}},
-};
-
-const TEAM = {
-  karen:   {id:82093636,  name:"Karen Gómez"},
-  miguel:  {id:90671147,  name:"Miguel López"},
-  liliana: {id:118053410, name:"Liliana Bohórquez"},
-  nicolas: {id:118053412, name:"Nicolás Garay"},
-  nico:    {id:118053412, name:"Nicolás Garay"},
-  sofia:   {id:118053413, name:"Sofía Ramírez"},
-  sofi:    {id:118053413, name:"Sofía Ramírez"},
-  esau:    {id:118053414, name:"Esaú Guerra"},
-  daniela: {id:null,      name:"Daniela"},
-  roberto: {id:null,      name:"Roberto Escobar"},
-};
-
+// Las 5 listas estándar de cada cliente. La estructura real se lee de ClickUp
+// al conectar — aquí solo viven los nombres canónicos para crear clientes nuevos.
+const LIST_DEFS = [
+  {key:"paid",       name:"📣 Paid Media"},
+  {key:"disenio",    name:"🎨 Diseño & Contenido"},
+  {key:"estrategia", name:"🧠 Estrategia & Reportes"},
+  {key:"admin",      name:"📋 Admin & Comunicación"},
+  {key:"desweb",     name:"💻 Desarrollo Web"},
+];
+const LIST_LABELS = {paid:"Paid Media", disenio:"Diseño & Contenido", estrategia:"Estrategia & Reportes", admin:"Admin & Comunicación", desweb:"Desarrollo Web"};
 const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
-const LIST_LABELS  = {paid:"Paid Media", disenio:"Diseño & Contenido", estrategia:"Estrategia & Reportes", admin:"Admin & Comunicación"};
+
 let clickupToken = "";
+let CLIENTS = {};   // se construye desde ClickUp al conectar
+let MEMBERS = [];   // idem
 
-const SYSTEM_PROMPT = `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
+// --- Proxy a ClickUp (evita CORS: el navegador habla con /api/clickup) ---
+async function cu(path, method = "GET", body = null) {
+  const r = await fetch(`/api/clickup?path=${encodeURIComponent(path)}`, {
+    method,
+    headers: {"Content-Type":"application/json","X-ClickUp-Token":clickupToken},
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const err = new Error(d.err || d.ECODE || `Error ${r.status} de ClickUp`);
+    err.status = r.status;
+    err.ecode = d.ECODE || "";
+    throw err;
+  }
+  return d;
+}
 
-CLIENTES (client_key exacto — usa siempre minúsculas):
+function listKeyFor(listName) {
+  const n = listName.toLowerCase();
+  if (n.includes("paid")) return "paid";
+  if (n.includes("dise")) return "disenio";
+  if (n.includes("estrategia")) return "estrategia";
+  if (n.includes("admin")) return "admin";
+  if (n.includes("desarrollo") || n.includes("web")) return "desweb";
+  return null;
+}
+
+// Busca el cliente por key exacta o por primera palabra; exige match único
+// para no archivar tareas en el cliente equivocado (ej. "dominios..." ≠ "dom").
+function findClient(rawKey) {
+  if (!rawKey) return null;
+  const k = String(rawKey).toLowerCase().trim();
+  if (CLIENTS[k]) return CLIENTS[k];
+  const first = k.split(/\s+/)[0];
+  const cands = Object.keys(CLIENTS).filter(key => key === first || key.split(/\s+/)[0] === first);
+  return cands.length === 1 ? CLIENTS[cands[0]] : null;
+}
+
+function splitEmoji(folderName) {
+  const parts = folderName.trim().split(/\s+/);
+  if (parts.length > 1 && /^[^\p{L}\p{N}]+$/u.test(parts[0])) {
+    return {emoji: parts[0], name: parts.slice(1).join(" ")};
+  }
+  return {emoji: "🏢", name: folderName.trim()};
+}
+
+const OPS_FOLDER_ID = "901318180618"; // 🏢 Operaciones - Color Ads LLC (interna, no es cliente)
+
+async function loadWorkspace() {
+  const [folderData, teamData] = await Promise.all([
+    cu(`space/${SPACE_ID}/folder?archived=false`),
+    cu("team"),
+  ]);
+
+  CLIENTS = {};
+  for (const f of folderData.folders || []) {
+    if (f.id === OPS_FOLDER_ID || /desactivad[oa]\s*$/i.test(f.name)) continue;
+    const {emoji, name} = splitEmoji(f.name);
+    const lists = {};
+    for (const l of f.lists || []) {
+      const key = listKeyFor(l.name);
+      if (key && !lists[key]) lists[key] = l.id;
+    }
+    if (!Object.keys(lists).length) continue;
+    CLIENTS[name.toLowerCase()] = {name, emoji, folderId: f.id, lists};
+  }
+
+  const team = (teamData.teams || []).find(t => String(t.id) === TEAM_ID) || (teamData.teams || [])[0];
+  MEMBERS = (team?.members || [])
+    .map(m => ({id: m.user.id, name: m.user.username || m.user.email || `Usuario ${m.user.id}`}))
+    .filter(m => m.id);
+
+  if (!Object.keys(CLIENTS).length) throw new Error("No encontré carpetas de clientes en el espacio Color Ads. ¿El token tiene acceso al workspace?");
+}
+
+function buildSystemPrompt() {
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD en hora local
+  return `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
+
+CLIENTES (usa el client_key EXACTO de esta lista, el que mejor corresponda al mencionado):
 ${Object.keys(CLIENTS).map(k => `"${k}"`).join(", ")}
 
 TIPOS DE LISTA (list_type):
@@ -195,27 +257,61 @@ TIPOS DE LISTA (list_type):
 "disenio"    → artes, guiones, contenido, fotos, videos, diseño, creativos, copy, edición
 "estrategia" → reportes, análisis, métricas, estrategia, resultados, planificación
 "admin"      → reuniones, contratos, facturación, coordinación, llamadas, onboarding
+"desweb"     → página web, landing, sitio, desarrollo, hosting, dominio, formularios web, integraciones, SEO técnico
 
-EQUIPO (assignee_key exacto):
-"karen", "miguel", "liliana", "nicolas"/"nico", "sofia"/"sofi", "esau", "daniela", "roberto", null
+EQUIPO (usa el assignee_id numérico; reconoce apodos y nombres parciales, ej. "Nico" → Nicolás):
+${MEMBERS.map(m => `${m.id} = ${m.name}`).join("\n")}
 
 PRIORIDADES: urgent, high, normal, low — default: normal
-HOY: ${new Date().toISOString().split("T")[0]}
+HOY: ${today}
 
 Responde ÚNICAMENTE con JSON válido sin markdown:
-{"confirmed":true,"task_name":"...","client_key":"...","list_type":"...","assignee_key":"...|null","priority":"...","due_date":"YYYY-MM-DD|null","description":"..."}
+{"confirmed":true,"task_name":"...","client_key":"...","list_type":"...","assignee_id":123|null,"priority":"...","due_date":"YYYY-MM-DD|null","description":"..."}
 
 Si falta cliente o tarea clara:
 {"confirmed":false,"error":"..."}`;
+}
 
-// --- Setup ---
+// --- Setup / conexión ---
+async function connect(token) {
+  clickupToken = token;
+  const btn = document.getElementById("connectBtn");
+  const errBox = document.getElementById("setupError");
+  btn.disabled = true;
+  btn.textContent = "Conectando con ClickUp...";
+  errBox.style.display = "none";
+  try {
+    await loadWorkspace();
+    localStorage.setItem("cu_token", token);
+    document.getElementById("setupCard").style.display = "none";
+    document.getElementById("chatCard").style.display  = "block";
+    document.getElementById("statusDot").classList.remove("off");
+    document.getElementById("messages").innerHTML = "";
+    addMsg(`<div class="msg-system">Hola equipo 👋 Conectado a ClickUp: ${Object.keys(CLIENTS).length} clientes cargados. Escríbeme una tarea y la creo automáticamente.</div>`);
+  } catch (e) {
+    clickupToken = "";
+    // Solo borrar el token guardado si ClickUp lo rechazó; un error de red no lo invalida
+    if (e.status === 401 || e.status === 403) localStorage.removeItem("cu_token");
+    errBox.textContent = "✕ " + e.message;
+    errBox.style.display = "block";
+  }
+  btn.disabled = false;
+  btn.textContent = "Conectar y abrir el chat →";
+}
+
 function saveToken() {
   const val = document.getElementById("tokenInput").value.trim();
   if (!val) return;
-  clickupToken = val;
-  document.getElementById("setupCard").style.display = "none";
-  document.getElementById("chatCard").style.display  = "block";
-  document.getElementById("statusDot").classList.remove("off");
+  connect(val);
+}
+
+function logout() {
+  localStorage.removeItem("cu_token");
+  clickupToken = "";
+  document.getElementById("chatCard").style.display = "none";
+  document.getElementById("setupCard").style.display = "block";
+  document.getElementById("statusDot").classList.add("off");
+  document.getElementById("tokenInput").value = "";
 }
 
 // --- Chat ---
@@ -244,15 +340,16 @@ async function sendMsg() {
   try {
     const cr = await fetch("/api/chat", {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
+      headers: {"Content-Type":"application/json","X-ClickUp-Token":clickupToken},
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 500,
-        system: SYSTEM_PROMPT,
+        system: buildSystemPrompt(),
         messages: [{role:"user", content:text}]
       })
     });
-    const cd = await cr.json();
+    const cd = await cr.json().catch(() => ({}));
+    if (!cr.ok) throw new Error(cd.error?.message || "El asistente no está disponible. Intenta de nuevo.");
     let raw = cd.content?.[0]?.text || "";
     raw = raw.replace(/```json\n?/gi,"").replace(/```\n?/g,"").trim();
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -268,54 +365,46 @@ async function sendMsg() {
       return;
     }
 
-    const client = CLIENTS[p.client_key];
+    const client = findClient(p.client_key);
     if (!client) {
       setLoading(false);
       addMsg(`<div class="msg-error">✕ No reconocí el cliente "${esc(p.client_key)}".</div>`);
       return;
     }
 
-    const listId   = client.lists[p.list_type] || client.lists.admin;
-    const member   = p.assignee_key && TEAM[p.assignee_key];
+    const usedType = client.lists[p.list_type] ? p.list_type
+                   : (client.lists.admin ? "admin" : Object.keys(client.lists)[0]);
+    const listId   = client.lists[usedType];
+    const member   = p.assignee_id ? MEMBERS.find(m => String(m.id) === String(p.assignee_id)) : null;
     const priority = PRIORITY_MAP[p.priority] || 3;
-    const dueTs    = p.due_date ? new Date(p.due_date).getTime() : null;
-
-    const body = {name:p.task_name, description:p.description||"", priority};
-    if (member && member.id) body.assignees = [member.id];
-    if (dueTs) body.due_date = dueTs;
-
-    const cur = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json","Authorization":clickupToken},
-      body: JSON.stringify(body)
-    });
-    const cud = await cur.json();
-    setLoading(false);
-
-    if (!cur.ok) {
-      addMsg(`<div class="msg-error">✕ ClickUp: ${esc(cud.err || "Token inválido o sin permisos")}</div>`);
-      return;
+    let dueTs = null;
+    if (p.due_date) {
+      const [y, mo, da] = p.due_date.split("-").map(Number);
+      if (y && mo && da) dueTs = new Date(y, mo - 1, da, 12).getTime(); // mediodía local: evita el corrimiento de día por UTC
     }
 
-    const pendingNote = (member && member.id === null)
-      ? `<div style="margin-top:8px;font-size:11px;color:#554422;">⚠ ${esc(member.name)} aún no activó su cuenta — tarea creada sin asignar.</div>`
-      : "";
-    const link = cud.url ? `<a href="${cud.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
+    const body = {name:p.task_name, description:p.description||"", priority};
+    if (member) body.assignees = [member.id];
+    if (dueTs) body.due_date = dueTs;
 
+    const cud = await cu(`list/${listId}/task`, "POST", body);
+    setLoading(false);
+
+    const link = cud.url ? `<a href="${cud.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
     addMsg(`<div class="msg-success">
       <div class="success-header"><div class="success-dot">✓</div><span class="success-label">Tarea creada en ClickUp</span></div>
       <p class="task-name">${esc(p.task_name)}</p>
       <div class="task-meta">
-        <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${client.name}</span>
-        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[p.list_type]||"Admin"}</span>
-        <span class="meta-key">Asignado</span><span class="meta-val">${member?member.name:"Sin asignar"}</span>
-        <span class="meta-key">Prioridad</span><span class="meta-val">${p.priority}</span>
-        ${p.due_date?`<span class="meta-key">Fecha</span><span class="meta-val">${p.due_date}</span>`:""}
-      </div>${pendingNote}${link}</div>`);
+        <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${esc(client.name)}</span>
+        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[usedType]||usedType}${usedType!==p.list_type?` <span style="color:#554422">(este cliente no tiene lista de ${esc(LIST_LABELS[p.list_type]||p.list_type)})</span>`:""}</span>
+        <span class="meta-key">Asignado</span><span class="meta-val">${member ? esc(member.name) : "Sin asignar"}</span>
+        <span class="meta-key">Prioridad</span><span class="meta-val">${esc(p.priority || "normal")}</span>
+        ${p.due_date?`<span class="meta-key">Fecha</span><span class="meta-val">${esc(p.due_date)}</span>`:""}
+      </div>${link}</div>`);
 
   } catch(e) {
     setLoading(false);
-    addMsg(`<div class="msg-error">✕ Error de conexión. Intenta de nuevo.</div>`);
+    addMsg(`<div class="msg-error">✕ ${esc(e.message || "Error de conexión. Intenta de nuevo.")}</div>`);
   }
 }
 
@@ -340,55 +429,56 @@ function closeModal() {
 }
 
 async function createClient() {
+  const btn = document.getElementById("createBtn");
+  if (btn.disabled) return; // el Enter del input no debe disparar un segundo intento en paralelo
   const name = document.getElementById("newClientName").value.trim();
   if (!name) { document.getElementById("newClientName").focus(); return; }
-
-  const btn = document.getElementById("createBtn");
   btn.disabled = true;
-  btn.textContent = "Creando en ClickUp...";
 
   try {
-    // 1. Create folder in ClickUp
-    const folderRes = await fetch(`https://api.clickup.com/api/v2/space/${SPACE_ID}/folder`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json","Authorization":clickupToken},
-      body: JSON.stringify({name: `${selectedEmoji} ${name}`})
-    });
-    const folder = await folderRes.json();
-    if (!folderRes.ok) throw new Error(folder.err || "Error creando carpeta");
-
-    // 2. Create 4 lists
-    const lists = ["📣 Paid Media","🎨 Diseño & Contenido","🧠 Estrategia & Reportes","📋 Admin & Comunicación"];
-    const listKeys = ["paid","disenio","estrategia","admin"];
-    const listIds = {};
-
-    for (let i = 0; i < lists.length; i++) {
-      const lr = await fetch(`https://api.clickup.com/api/v2/folder/${folder.id}/list`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":clickupToken},
-        body: JSON.stringify({name: lists[i]})
-      });
-      const ld = await lr.json();
-      listIds[listKeys[i]] = ld.id;
+    btn.textContent = "Creando carpeta...";
+    let folder;
+    try {
+      folder = await cu(`space/${SPACE_ID}/folder`, "POST", {name: `${selectedEmoji} ${name}`});
+    } catch (e) {
+      if (!(e.ecode === "CAT_014" || /name taken/i.test(e.message))) throw e;
+      // La carpeta ya existe (p. ej. quedó a medias en un intento anterior): adoptarla y completar lo que falte
+      const d = await cu(`space/${SPACE_ID}/folder?archived=false`);
+      folder = (d.folders || []).find(f => splitEmoji(f.name).name.toLowerCase() === name.toLowerCase());
+      if (!folder) throw e;
     }
 
-    // 3. Add to CLIENTS in memory
-    const key = name.toLowerCase().trim();
-    CLIENTS[key] = {name, emoji: selectedEmoji, lists: listIds};
+    const existing = new Set((folder.lists || []).map(l => listKeyFor(l.name)).filter(Boolean));
+    const missing = LIST_DEFS.filter(def => !existing.has(def.key));
+    for (let i = 0; i < missing.length; i++) {
+      btn.textContent = `Creando lista ${i + 1}/${missing.length}...`;
+      await cu(`folder/${folder.id}/list`, "POST", {name: missing[i].name});
+    }
+
+    btn.textContent = "Sincronizando...";
+    let synced = true;
+    try { await loadWorkspace(); } catch { synced = false; }
 
     closeModal();
-    addMsg(`<div class="msg-client">
-      <div class="success-header"><div class="client-dot">✦</div><span class="client-label">Nuevo cliente creado</span></div>
-      <p class="task-name">${selectedEmoji} ${esc(name)}</p>
-      <div class="task-meta">
-        <span class="meta-key">En ClickUp</span><span class="meta-val">✓ Carpeta + 4 listas</span>
-        <span class="meta-key">En la app</span><span class="meta-val">✓ Disponible ahora</span>
-      </div>
-      <div style="margin-top:10px;font-size:12px;color:#3a3a3a;">Ya puedes crear tareas para ${esc(name)} en este chat.</div>
-    </div>`);
+    if (synced && !CLIENTS[name.toLowerCase()]) {
+      addMsg(`<div class="msg-error">⚠ El cliente quedó creado en ClickUp, pero la app lo oculta (los nombres que terminan en "Desactivado" no se muestran). Revísalo directo en ClickUp.</div>`);
+    } else {
+      addMsg(`<div class="msg-client">
+        <div class="success-header"><div class="client-dot">✦</div><span class="client-label">Nuevo cliente creado</span></div>
+        <p class="task-name">${selectedEmoji} ${esc(name)}</p>
+        <div class="task-meta">
+          <span class="meta-key">En ClickUp</span><span class="meta-val">✓ Carpeta + ${LIST_DEFS.length} listas</span>
+          <span class="meta-key">En la app</span><span class="meta-val">${synced ? "✓ Disponible para todo el equipo" : "⚠ Recarga la página para verlo"}</span>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#3a3a3a;">Ya puedes crear tareas para ${esc(name)} en este chat.</div>
+      </div>`);
+    }
 
   } catch(e) {
-    addMsg(`<div class="msg-error">✕ Error: ${esc(e.message)}</div>`);
+    let hint = "";
+    if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas en el Space (los invitados no pueden) — pídele a un admin que cree el cliente o que suba tus permisos en ClickUp.";
+    else if (e.ecode === "CAT_014" || /name taken/i.test(e.message)) hint = " Ya existe una carpeta con un nombre parecido en ClickUp — revísala allá.";
+    addMsg(`<div class="msg-error">✕ Error creando el cliente: ${esc(e.message)}.${esc(hint)}</div>`);
   }
 
   btn.disabled = false;
@@ -400,6 +490,13 @@ function esc(s) {
 }
 
 document.getElementById("tokenInput").addEventListener("keydown", e => { if(e.key==="Enter") saveToken(); });
+
+// Token guardado → reconectar automáticamente
+const stored = localStorage.getItem("cu_token");
+if (stored) {
+  document.getElementById("tokenInput").value = stored;
+  connect(stored);
+}
 </script>
 </body>
 </html>
