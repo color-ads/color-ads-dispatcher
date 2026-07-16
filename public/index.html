@@ -6,149 +6,171 @@
 <title>Color Ads — Task Dispatcher</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d0d0d;color:#e2e2e2;min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
-.container{width:100%;max-width:960px}
-.header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.header-icon{width:38px;height:38px;border-radius:10px;background:#161625;border:1px solid #252540;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.header h1{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.2px}
-.header p{font-size:12px;color:#555;margin-top:2px}
-.header-user{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:#666}
-.dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0}
-.dot.off{background:#3a3a3a}
-.card{background:#111;border:1px solid #1c1c1c;border-radius:16px;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f2f3f5;color:#1f2430;min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
+.container{width:100%;max-width:980px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.header-icon{width:40px;height:40px;border-radius:10px;background:#1f2a55;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.header h1{font-size:16px;font-weight:700;color:#141927;letter-spacing:-0.2px}
+.header p{font-size:12px;color:#8a90a0;margin-top:2px}
+.header-user{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:#555c6e;font-weight:500}
+.dot{width:8px;height:8px;border-radius:50%;background:#1e9e4a;flex-shrink:0}
+.dot.off{background:#c3c7d0}
+.card{background:#fff;border:1px solid #e2e4e9;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(20,25,39,.05)}
 .login-card{max-width:520px;margin:40px auto 0}
-.setup-body{padding:24px}
-.setup-body h2{font-size:14px;font-weight:500;color:#ccc;margin-bottom:5px}
-.setup-body .sub{font-size:12px;color:#444;line-height:1.5;margin-bottom:16px}
-.setup-body .sub a{color:#4f8ef7;text-decoration:none}
-input[type=password],input[type=text]{width:100%;padding:10px 12px;background:#0d0d0d;border:1px solid #242424;border-radius:8px;color:#e2e2e2;font-size:13px;font-family:monospace;outline:none;transition:border-color .15s}
-input[type=text]{font-family:inherit}
-input:focus{border-color:#333}
-input::placeholder{color:#333}
+.setup-body{padding:26px}
+.setup-body h2{font-size:16px;font-weight:600;color:#141927;margin-bottom:6px}
+.setup-body .sub{font-size:13px;color:#6b7280;line-height:1.55;margin-bottom:16px}
+.setup-body .sub a{color:#2f5fd0;text-decoration:none;font-weight:500}
+input[type=password],input[type=text],input[type=date],select{width:100%;padding:10px 12px;background:#fff;border:1px solid #d4d7de;border-radius:8px;color:#1f2430;font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;color-scheme:light}
+input[type=password]{font-family:monospace}
+input:focus,select:focus{border-color:#2f5fd0;box-shadow:0 0 0 3px rgba(47,95,208,.12)}
+input::placeholder{color:#a5aab6}
 input:disabled{opacity:.5;cursor:not-allowed}
-.btn{width:100%;margin-top:10px;padding:11px 16px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
-.btn:hover{background:#1e1e38}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-primary{background:#4f8ef7;border-color:#4f8ef7;color:#fff;font-size:14px}
-.btn-primary:hover{background:#3d7ce6}
-.setup-error{display:none;margin-top:10px;background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:12px;color:#854040}
-.manual-toggle{display:block;text-align:center;margin-top:14px;font-size:12px;color:#444;cursor:pointer;background:none;border:none;width:100%}
-.manual-toggle:hover{color:#666}
-.manual-section{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #1a1a1a}
+.btn{width:100%;margin-top:10px;padding:11px 16px;background:#fff;border:1px solid #d4d7de;border-radius:8px;color:#2f5fd0;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn:hover{background:#f5f7ff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:#2f5fd0;border-color:#2f5fd0;color:#fff;font-size:15px}
+.btn-primary:hover{background:#2751b5}
+.setup-error{display:none;margin-top:12px;background:#fdecec;border:1px solid #f5c6c6;border-radius:8px;padding:10px 12px;font-size:13px;color:#b03030;font-weight:500}
+.manual-toggle{display:block;text-align:center;margin-top:14px;font-size:13px;color:#8a90a0;cursor:pointer;background:none;border:none;width:100%}
+.manual-toggle:hover{color:#555c6e}
+.manual-section{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #eceef2}
 
 /* Tabs */
-.tabs{display:flex;gap:8px;margin-bottom:14px}
-.tab{padding:8px 16px;background:#111;border:1px solid #1c1c1c;border-radius:10px;color:#666;font-size:13px;cursor:pointer;transition:all .15s}
-.tab:hover{color:#999}
-.tab.active{background:#161625;border-color:#252540;color:#9ab0f5;font-weight:500}
+.tabs{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+.tab{padding:9px 18px;background:#fff;border:1px solid #e2e4e9;border-radius:10px;color:#555c6e;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s}
+.tab:hover{border-color:#c3c7d0}
+.tab.active{background:#1f2a55;border-color:#1f2a55;color:#fff;font-weight:600}
 .tab-right{margin-left:auto;display:flex;gap:8px;align-items:center}
-.token-btn{padding:6px 12px;background:#141414;border:1px solid #242424;border-radius:8px;color:#666;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
-.token-btn:hover{background:#1a1a1a;color:#999}
-.new-client-btn{padding:6px 12px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:8px;color:#22c55e;font-size:11px;cursor:pointer;white-space:nowrap;transition:background .15s}
-.new-client-btn:hover{background:#111f11}
+.token-btn{padding:7px 13px;background:#fff;border:1px solid #e2e4e9;border-radius:8px;color:#8a90a0;font-size:12px;cursor:pointer;white-space:nowrap}
+.token-btn:hover{color:#555c6e;border-color:#c3c7d0}
+.new-client-btn{padding:7px 13px;background:#fff;border:1px solid #bfe8cd;border-radius:8px;color:#178040;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.new-client-btn:hover{background:#f0faf4}
 
 /* Chat */
-#chatCard{max-width:560px;margin:0 auto}
-.chat-header{padding:10px 14px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px}
-.chat-header span{font-size:13px;font-weight:500;color:#ccc;flex:1}
-.messages{height:400px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
-.messages::-webkit-scrollbar,.board-body::-webkit-scrollbar{width:4px}
+#chatCard{max-width:580px;margin:0 auto}
+.chat-header{padding:12px 16px;border-bottom:1px solid #eceef2;display:flex;align-items:center;gap:8px}
+.chat-header span{font-size:14px;font-weight:600;color:#141927;flex:1}
+.messages{height:400px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;background:#fafbfc}
+.messages::-webkit-scrollbar,.board-body::-webkit-scrollbar{width:6px}
 .messages::-webkit-scrollbar-track,.board-body::-webkit-scrollbar-track{background:transparent}
-.messages::-webkit-scrollbar-thumb,.board-body::-webkit-scrollbar-thumb{background:#1e1e1e;border-radius:4px}
-.msg-system{background:#141414;border-radius:8px;padding:10px 12px;font-size:13px;color:#555;line-height:1.5}
-.msg-user{align-self:flex-end;background:#161625;border:1px solid #252540;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13px;color:#9ab0f5;max-width:85%}
-.msg-error{background:#1a0d0d;border:1px solid #2a1515;border-radius:8px;padding:10px 12px;font-size:13px;color:#854040}
-.msg-success{background:#0d0d0d;border:1px solid #1a2a1a;border-radius:10px;padding:14px}
-.msg-client{background:#0d0d0d;border:1px solid #1a2a3a;border-radius:10px;padding:14px}
+.messages::-webkit-scrollbar-thumb,.board-body::-webkit-scrollbar-thumb{background:#d4d7de;border-radius:4px}
+.msg-system{background:#eef0f4;border-radius:10px;padding:11px 13px;font-size:13.5px;color:#555c6e;line-height:1.5}
+.msg-user{align-self:flex-end;background:#2f5fd0;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:13.5px;color:#fff;max-width:85%}
+.msg-error{background:#fdecec;border:1px solid #f5c6c6;border-radius:10px;padding:11px 13px;font-size:13.5px;color:#b03030}
+.msg-success{background:#fff;border:1px solid #bfe8cd;border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(20,25,39,.04)}
+.msg-client{background:#fff;border:1px solid #c4d4f5;border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(20,25,39,.04)}
 .success-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.success-dot{width:18px;height:18px;border-radius:50%;background:#0f2010;border:1px solid #1a3a1a;display:flex;align-items:center;justify-content:center;font-size:10px;color:#22c55e;flex-shrink:0}
-.client-dot{width:18px;height:18px;border-radius:50%;background:#0f1020;border:1px solid #1a2a4a;display:flex;align-items:center;justify-content:center;font-size:10px;color:#4f8ef7;flex-shrink:0}
-.success-label{font-size:12px;font-weight:500;color:#22c55e}
-.client-label{font-size:12px;font-weight:500;color:#4f8ef7}
-.task-name{font-size:14px;font-weight:500;color:#d4d4d4;margin-bottom:10px;line-height:1.4}
-.task-meta{display:grid;grid-template-columns:80px 1fr;gap:5px 8px;font-size:12px}
-.meta-key{color:#3a3a3a}
-.meta-val{color:#888}
-.task-link{display:inline-block;margin-top:10px;font-size:12px;color:#4f6abf;text-decoration:none}
-.task-link:hover{color:#7aa3f5}
+.success-dot{width:20px;height:20px;border-radius:50%;background:#e8f7ee;display:flex;align-items:center;justify-content:center;font-size:11px;color:#178040;flex-shrink:0}
+.client-dot{width:20px;height:20px;border-radius:50%;background:#e8eefc;display:flex;align-items:center;justify-content:center;font-size:11px;color:#2f5fd0;flex-shrink:0}
+.success-label{font-size:13px;font-weight:600;color:#178040}
+.client-label{font-size:13px;font-weight:600;color:#2f5fd0}
+.task-name{font-size:15px;font-weight:600;color:#141927;margin-bottom:10px;line-height:1.4}
+.task-meta{display:grid;grid-template-columns:84px 1fr;gap:5px 8px;font-size:13px}
+.meta-key{color:#a5aab6}
+.meta-val{color:#3d4354}
+.task-link{display:inline-block;margin-top:10px;font-size:13px;color:#2f5fd0;text-decoration:none;font-weight:500}
+.task-link:hover{text-decoration:underline}
 .typing{display:flex;gap:4px;align-items:center;padding:8px 12px}
-.typing-dot{width:6px;height:6px;border-radius:50%;background:#2a2a2a;animation:blink 1.2s ease-in-out infinite}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#c3c7d0;animation:blink 1.2s ease-in-out infinite}
 .typing-dot:nth-child(2){animation-delay:.2s}
 .typing-dot:nth-child(3){animation-delay:.4s}
-.typing-label{font-size:12px;color:#333;margin-left:6px}
+.typing-label{font-size:12px;color:#a5aab6;margin-left:6px}
 @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
-.input-row{padding:12px 14px;border-top:1px solid #1a1a1a;display:flex;gap:8px}
-.input-row input{flex:1;padding:9px 12px;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:8px;color:#d4d4d4;font-size:13px;font-family:inherit;outline:none}
-.input-row input:focus{border-color:#262636}
-.send-btn{padding:9px 14px;background:#161625;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;cursor:pointer;white-space:nowrap;transition:background .15s}
-.send-btn:hover{background:#1c1c30}
-.send-btn:disabled{opacity:.4;cursor:not-allowed}
-.examples{margin-top:16px;background:#0d0d0d;border-radius:8px;padding:12px}
-.examples p{font-size:11px;color:#444;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-.examples span{display:block;font-size:12px;color:#3d3d3d;line-height:1.7}
+.input-row{padding:12px 14px;border-top:1px solid #eceef2;display:flex;gap:8px;background:#fff}
+.input-row input{flex:1}
+.send-btn{padding:10px 16px;background:#2f5fd0;border:1px solid #2f5fd0;border-radius:8px;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.send-btn:hover{background:#2751b5}
+.send-btn:disabled{opacity:.45;cursor:not-allowed}
+.examples{margin-top:16px;background:#f6f7f9;border-radius:8px;padding:12px}
+.examples p{font-size:11px;color:#8a90a0;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.examples span{display:block;font-size:12.5px;color:#6b7280;line-height:1.7}
 
 /* Board */
-.board-toolbar{padding:12px 14px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.area-chip{padding:6px 12px;background:#0d0d0d;border:1px solid #242424;border-radius:20px;color:#666;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
-.area-chip:hover{color:#999;border-color:#333}
-.area-chip.active{background:#161625;border-color:#4f8ef7;color:#9ab0f5;font-weight:500}
+.board-toolbar{padding:12px 16px 10px;border-bottom:1px solid #eceef2;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.area-chip{padding:7px 14px;background:#fff;border:1px solid #d4d7de;border-radius:20px;color:#555c6e;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.area-chip:hover{border-color:#a5aab6}
+.area-chip.active{background:#1f2a55;border-color:#1f2a55;color:#fff;font-weight:600}
 .board-toolbar .spacer{flex:1}
-.mode-toggle{display:flex;background:#0d0d0d;border:1px solid #242424;border-radius:8px;overflow:hidden}
-.mode-toggle button{padding:6px 12px;background:none;border:none;color:#555;font-size:11px;cursor:pointer}
-.mode-toggle button.active{background:#161625;color:#9ab0f5}
-.refresh-btn{padding:6px 10px;background:#0d0d0d;border:1px solid #242424;border-radius:8px;color:#666;font-size:12px;cursor:pointer}
-.refresh-btn:hover{color:#999}
-.board-summary{padding:10px 14px;display:flex;gap:14px;font-size:12px;color:#555;border-bottom:1px solid #161616}
-.board-summary b{font-weight:600}
-.sum-late{color:#e05252}
-.sum-today{color:#e0a052}
-.board-body{max-height:640px;overflow-y:auto;padding:6px 14px 14px}
-.board-loading{padding:40px;text-align:center;color:#444;font-size:13px}
-.board-empty{padding:40px;text-align:center;color:#3a3a3a;font-size:13px}
-.group-header{display:flex;align-items:center;gap:8px;padding:14px 0 8px;position:sticky;top:0;background:#111;z-index:2}
-.group-avatar{width:22px;height:22px;border-radius:50%;background:#252540;color:#9ab0f5;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.group-title{font-size:13px;font-weight:600;color:#bbb}
-.group-count{font-size:11px;color:#444}
-.group-late{font-size:10px;background:#1a0d0d;border:1px solid #2a1515;color:#e05252;padding:2px 7px;border-radius:10px}
-.trow{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #1a1a1a;border-radius:10px;margin-bottom:6px;background:#0d0d0d;transition:opacity .3s}
+.quick-btn{padding:8px 15px;background:#178040;border:1px solid #178040;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.quick-btn:hover{background:#126634}
+.mode-toggle{display:flex;background:#eef0f4;border-radius:8px;overflow:hidden;padding:2px}
+.mode-toggle button{padding:6px 13px;background:none;border:none;border-radius:6px;color:#6b7280;font-size:12.5px;font-weight:500;cursor:pointer}
+.mode-toggle button.active{background:#fff;color:#1f2a55;font-weight:600;box-shadow:0 1px 2px rgba(20,25,39,.1)}
+.refresh-btn{padding:7px 11px;background:#fff;border:1px solid #d4d7de;border-radius:8px;color:#555c6e;font-size:13px;cursor:pointer}
+.refresh-btn:hover{border-color:#a5aab6}
+.person-bar{padding:10px 16px;border-bottom:1px solid #eceef2;display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:#fafbfc}
+.person-chip{display:flex;align-items:center;gap:6px;padding:5px 11px 5px 6px;background:#fff;border:1px solid #d4d7de;border-radius:18px;color:#3d4354;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s}
+.person-chip:hover{border-color:#a5aab6}
+.person-chip.active{background:#2f5fd0;border-color:#2f5fd0;color:#fff}
+.person-chip .pc-avatar{width:20px;height:20px;border-radius:50%;background:#e8eefc;color:#2f5fd0;font-size:8.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.person-chip.active .pc-avatar{background:rgba(255,255,255,.25);color:#fff}
+.person-chip .pc-count{font-size:11px;color:#8a90a0}
+.person-chip.active .pc-count{color:rgba(255,255,255,.75)}
+.person-chip .pc-late{font-size:10px;background:#fdecec;color:#c0392b;padding:1px 6px;border-radius:8px;font-weight:700}
+.board-summary{padding:11px 16px;display:flex;gap:16px;font-size:13.5px;color:#555c6e;border-bottom:1px solid #eceef2;flex-wrap:wrap}
+.board-summary b{font-weight:700;color:#141927}
+.sum-late{color:#c0392b}
+.sum-late b{color:#c0392b}
+.sum-today{color:#b9770e}
+.sum-today b{color:#b9770e}
+.sum-nodate{color:#8a90a0}
+.board-body{max-height:640px;overflow-y:auto;padding:6px 16px 16px;background:#fff}
+.board-loading{padding:44px;text-align:center;color:#8a90a0;font-size:14px}
+.board-empty{padding:44px;text-align:center;color:#8a90a0;font-size:14px}
+.group-header{display:flex;align-items:center;gap:9px;padding:16px 0 8px;position:sticky;top:0;background:#fff;z-index:2}
+.group-avatar{width:26px;height:26px;border-radius:50%;background:#e8eefc;color:#2f5fd0;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.group-title{font-size:14.5px;font-weight:700;color:#141927}
+.group-count{font-size:12px;color:#8a90a0;font-weight:500}
+.group-late{font-size:11px;background:#fdecec;color:#c0392b;padding:2px 8px;border-radius:10px;font-weight:700}
+.trow{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid #e7e9ee;border-radius:10px;margin-bottom:7px;background:#fff;transition:opacity .3s,box-shadow .15s}
+.trow:hover{box-shadow:0 2px 6px rgba(20,25,39,.07)}
 .trow.removing{opacity:0}
-.trow-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.trow-status{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .trow-main{flex:1;min-width:0}
-.trow-name{font-size:13px;color:#ccc;line-height:1.35;text-decoration:none;display:block}
-.trow-name:hover{color:#9ab0f5}
-.trow-sub{display:flex;gap:8px;margin-top:3px;font-size:11px;color:#4a4a4a;align-items:center;flex-wrap:wrap}
-.trow-client{color:#666}
-.trow-assignee{width:20px;height:20px;border-radius:50%;background:#1c1c30;color:#8899cc;font-size:8px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.date-chip{position:relative;padding:5px 9px;background:#141414;border:1px solid #242424;border-radius:7px;font-size:11px;color:#777;cursor:pointer;white-space:nowrap;flex-shrink:0}
-.date-chip:hover{border-color:#333;color:#aaa}
-.date-chip.late{background:#1a0d0d;border-color:#2a1515;color:#e05252}
-.date-chip.today{background:#1a140d;border-color:#2a2015;color:#e0a052}
-.date-chip input[type=date]{position:absolute;inset:0;opacity:0;cursor:pointer;color-scheme:dark;width:100%;height:100%}
-.done-btn{padding:5px 10px;background:#0d1a0d;border:1px solid #1a3a1a;border-radius:7px;color:#22c55e;font-size:11px;cursor:pointer;flex-shrink:0;transition:background .15s}
-.done-btn:hover{background:#122712}
+.trow-name{font-size:14px;color:#141927;font-weight:500;line-height:1.35;text-decoration:none;display:block}
+.trow-name:hover{color:#2f5fd0}
+.trow-sub{display:flex;gap:8px;margin-top:3px;font-size:12px;color:#8a90a0;align-items:center;flex-wrap:wrap}
+.trow-client{color:#555c6e;font-weight:500}
+.trow-assignee{width:24px;height:24px;border-radius:50%;background:#e8eefc;color:#2f5fd0;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.date-chip{position:relative;padding:6px 11px;background:#f6f7f9;border:1px solid #d4d7de;border-radius:8px;font-size:12px;font-weight:600;color:#555c6e;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.date-chip:hover{border-color:#a5aab6}
+.date-chip.late{background:#fdecec;border-color:#f0b4b4;color:#c0392b}
+.date-chip.today{background:#fef3e2;border-color:#f0d6a8;color:#b9770e}
+.date-chip.nodate{background:#fff;border:1.5px dashed #d98324;color:#d98324}
+.date-chip.nodate:hover{background:#fef8f0}
+.date-chip input[type=date]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;padding:0;border:none}
+.done-btn{padding:6px 12px;background:#fff;border:1px solid #bfe8cd;border-radius:8px;color:#178040;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;transition:background .15s}
+.done-btn:hover{background:#e8f7ee}
 .done-btn:disabled{opacity:.4;cursor:wait}
-.bucket-header{display:flex;align-items:center;gap:8px;padding:14px 0 8px;position:sticky;top:0;background:#111;z-index:2}
-.bucket-title{font-size:13px;font-weight:600}
+.bucket-header{display:flex;align-items:center;gap:8px;padding:16px 0 8px;position:sticky;top:0;background:#fff;z-index:2}
+.bucket-title{font-size:14.5px;font-weight:700}
 
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
-.modal{background:#111;border:1px solid #222;border-radius:16px;width:100%;max-width:400px;padding:20px}
-.modal h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:4px}
-.modal p{font-size:12px;color:#444;margin-bottom:16px}
-.modal label{display:block;font-size:12px;color:#555;margin-bottom:5px;margin-top:12px}
-.modal input{width:100%;padding:9px 12px;background:#0d0d0d;border:1px solid #242424;border-radius:8px;color:#e2e2e2;font-size:13px;font-family:inherit;outline:none}
-.modal input:focus{border-color:#333}
+/* Toast */
+.toast{position:fixed;bottom:22px;right:22px;background:#141927;color:#fff;font-size:13.5px;font-weight:500;padding:12px 18px;border-radius:10px;box-shadow:0 4px 14px rgba(20,25,39,.25);opacity:0;transform:translateY(8px);transition:all .25s;z-index:300;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Modales */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,25,39,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:420px;padding:22px;box-shadow:0 10px 40px rgba(20,25,39,.2)}
+.modal h3{font-size:16px;font-weight:700;color:#141927;margin-bottom:4px}
+.modal p{font-size:13px;color:#8a90a0;margin-bottom:14px}
+.modal label{display:block;font-size:12.5px;font-weight:600;color:#555c6e;margin-bottom:5px;margin-top:12px}
+.modal-row{display:flex;gap:10px}
+.modal-row>div{flex:1}
 .modal-emoji-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.emoji-opt{width:34px;height:34px;border-radius:8px;background:#0d0d0d;border:1px solid #242424;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:border-color .15s}
-.emoji-opt:hover{border-color:#333}
-.emoji-opt.selected{border-color:#4f8ef7;background:#0d1020}
-.modal-actions{display:flex;gap:8px;margin-top:16px}
-.modal-cancel{flex:1;padding:9px;background:transparent;border:1px solid #242424;border-radius:8px;color:#555;font-size:13px;cursor:pointer}
-.modal-cancel:hover{border-color:#333;color:#888}
-.modal-create{flex:2;padding:9px;background:#1a1a2e;border:1px solid #252540;border-radius:8px;color:#7aa3f5;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
-.modal-create:hover{background:#1e1e38}
-.modal-create:disabled{opacity:.4;cursor:not-allowed}
-@media (max-width:640px){.board-toolbar{gap:6px}.area-chip{padding:5px 9px;font-size:11px}}
+.emoji-opt{width:36px;height:36px;border-radius:8px;background:#f6f7f9;border:1px solid #d4d7de;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:border-color .15s}
+.emoji-opt:hover{border-color:#a5aab6}
+.emoji-opt.selected{border-color:#2f5fd0;background:#e8eefc}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.modal-cancel{flex:1;padding:10px;background:#fff;border:1px solid #d4d7de;border-radius:8px;color:#6b7280;font-size:13.5px;font-weight:500;cursor:pointer}
+.modal-cancel:hover{border-color:#a5aab6}
+.modal-create{flex:2;padding:10px;background:#2f5fd0;border:1px solid #2f5fd0;border-radius:8px;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s}
+.modal-create:hover{background:#2751b5}
+.modal-create:disabled{opacity:.45;cursor:not-allowed}
+.modal-create.green{background:#178040;border-color:#178040}
+.modal-create.green:hover{background:#126634}
+@media (max-width:640px){.board-toolbar{gap:6px}.area-chip{padding:6px 10px;font-size:12px}.modal-row{flex-direction:column;gap:0}}
 </style>
 </head>
 <body>
@@ -157,7 +179,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
     <div class="header-icon">⚡</div>
     <div>
       <h1>Color Ads — Task Dispatcher</h1>
-      <p>Powered by Claude + ClickUp</p>
+      <p>Tráfico diario · Powered by Claude + ClickUp</p>
     </div>
     <div class="header-user" id="headerUser" style="display:none"></div>
     <div class="dot off" id="statusDot" style="margin-left:10px"></div>
@@ -182,15 +204,24 @@ input:disabled{opacity:.5;cursor:not-allowed}
   <!-- App -->
   <div id="appShell" style="display:none">
     <div class="tabs">
-      <button class="tab active" id="tabChat" onclick="switchTab('chat')">⚡ Crear tareas</button>
-      <button class="tab" id="tabBoard" onclick="switchTab('board')">📋 Tablero por área</button>
+      <button class="tab active" id="tabBoard" onclick="switchTab('board')">📋 Tablero</button>
+      <button class="tab" id="tabChat" onclick="switchTab('chat')">⚡ Crear con IA</button>
       <div class="tab-right">
         <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
         <button class="token-btn" onclick="logout()">Salir</button>
       </div>
     </div>
 
-    <div class="card" id="chatCard">
+    <div class="card" id="boardCard">
+      <div class="board-toolbar" id="areaChips"></div>
+      <div class="person-bar" id="personBar" style="display:none"></div>
+      <div class="board-summary" id="boardSummary" style="display:none"></div>
+      <div class="board-body" id="boardBody">
+        <div class="board-loading">Cargando tablero...</div>
+      </div>
+    </div>
+
+    <div class="card" id="chatCard" style="display:none">
       <div class="chat-header"><span>Crear tareas con lenguaje natural</span><div class="dot"></div></div>
       <div class="messages" id="messages"></div>
       <div class="input-row">
@@ -198,18 +229,10 @@ input:disabled{opacity:.5;cursor:not-allowed}
         <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
       </div>
     </div>
-
-    <div class="card" id="boardCard" style="display:none">
-      <div class="board-toolbar" id="areaChips"></div>
-      <div class="board-summary" id="boardSummary" style="display:none"></div>
-      <div class="board-body" id="boardBody">
-        <div class="board-loading">Cargando tablero...</div>
-      </div>
-    </div>
   </div>
 </div>
 
-<!-- New Client Modal -->
+<!-- Modal: Nuevo cliente -->
 <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <h3>Agregar nuevo cliente</h3>
@@ -224,6 +247,49 @@ input:disabled{opacity:.5;cursor:not-allowed}
     </div>
   </div>
 </div>
+
+<!-- Modal: Tarea rápida -->
+<div class="modal-overlay" id="quickOverlay" style="display:none" onclick="if(event.target===this)closeQuick()">
+  <div class="modal">
+    <h3>Tarea rápida</h3>
+    <p>Se crea directo en ClickUp, sin pasar por la IA</p>
+    <label>¿Qué hay que hacer?</label>
+    <input type="text" id="qtName" placeholder="Ej: Ajustar banner de la promo" onkeydown="if(event.key==='Enter')createQuickTask()"/>
+    <div class="modal-row">
+      <div>
+        <label>Cliente</label>
+        <select id="qtClient"></select>
+      </div>
+      <div>
+        <label>Área</label>
+        <select id="qtArea"></select>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Responsable</label>
+        <select id="qtAssignee"></select>
+      </div>
+      <div>
+        <label>Fecha de entrega</label>
+        <input type="date" id="qtDate"/>
+      </div>
+    </div>
+    <label>Prioridad</label>
+    <select id="qtPriority">
+      <option value="normal" selected>Normal</option>
+      <option value="urgent">🔴 Urgente</option>
+      <option value="high">🟠 Alta</option>
+      <option value="low">Baja</option>
+    </select>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeQuick()">Cancelar</button>
+      <button class="modal-create green" id="qtCreateBtn" onclick="createQuickTask()">Crear tarea →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const SPACE_ID = "90130971239";
@@ -248,6 +314,7 @@ let MEMBERS = [];
 let ME = null;
 let AREA = "disenio";
 let boardMode = "persona"; // "persona" | "fecha"
+let personFilter = null;   // null = todos | "sin" = sin asignar | id numérico
 let boardTasks = [];
 let boardLoadSeq = 0;
 let boardFailed = 0;
@@ -273,6 +340,14 @@ async function cu(path, method = "GET", body = null) {
 
 function esc(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), 3200);
 }
 
 function listKeyFor(listName) {
@@ -390,8 +465,9 @@ async function connect(token) {
       hu.textContent = ME.username || ME.email || "";
     }
     document.getElementById("messages").innerHTML = "";
-    addMsg(`<div class="msg-system">Hola${ME?.username ? " " + esc(ME.username.split(" ")[0]) : ""} 👋 Conectado a ClickUp: ${Object.keys(CLIENTS).length} clientes. Escríbeme una tarea y la creo, o revisa el 📋 Tablero por área.</div>`);
+    addMsg(`<div class="msg-system">Hola${ME?.username ? " " + esc(ME.username.split(" ")[0]) : ""} 👋 Conectado a ClickUp: ${Object.keys(CLIENTS).length} clientes. Escríbeme una tarea y la creo.</div>`);
     renderAreaChips();
+    switchTab("board"); // el tablero es la pantalla principal del tráfico diario
   } catch (e) {
     clickupToken = "";
     // Solo borrar el token guardado si ClickUp lo rechazó; un error de red no lo invalida
@@ -511,7 +587,7 @@ async function sendMsg() {
       <p class="task-name">${esc(p.task_name)}</p>
       <div class="task-meta">
         <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${esc(client.name)}</span>
-        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[usedType]||usedType}${usedType!==p.list_type?` <span style="color:#554422">(este cliente no tiene lista de ${esc(LIST_LABELS[p.list_type]||p.list_type)})</span>`:""}</span>
+        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[usedType]||usedType}${usedType!==p.list_type?` <span style="color:#b9770e">(este cliente no tiene lista de ${esc(LIST_LABELS[p.list_type]||p.list_type)})</span>`:""}</span>
         <span class="meta-key">Asignado</span><span class="meta-val">${member ? esc(member.name) : "Sin asignar"}</span>
         <span class="meta-key">Prioridad</span><span class="meta-val">${esc(p.priority || "normal")}</span>
         ${p.due_date?`<span class="meta-key">Fecha</span><span class="meta-val">${esc(p.due_date)}</span>`:""}
@@ -531,12 +607,18 @@ function renderAreaChips() {
     const b = document.createElement("button");
     b.className = "area-chip" + (def.key === AREA ? " active" : "");
     b.textContent = def.chip;
-    b.onclick = () => { AREA = def.key; renderAreaChips(); loadBoard(); };
+    b.onclick = () => { AREA = def.key; personFilter = null; renderAreaChips(); loadBoard(); };
     bar.appendChild(b);
   }
   const spacer = document.createElement("div");
   spacer.className = "spacer";
   bar.appendChild(spacer);
+
+  const quick = document.createElement("button");
+  quick.className = "quick-btn";
+  quick.textContent = "+ Tarea rápida";
+  quick.onclick = openQuick;
+  bar.appendChild(quick);
 
   const toggle = document.createElement("div");
   toggle.className = "mode-toggle";
@@ -555,6 +637,52 @@ function renderAreaChips() {
   refresh.title = "Actualizar";
   refresh.onclick = () => loadBoard();
   bar.appendChild(refresh);
+}
+
+function dayStart(d) { const x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+
+function renderPersonBar() {
+  const bar = document.getElementById("personBar");
+  if (!boardTasks.length) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  bar.innerHTML = "";
+  const today = dayStart(new Date());
+
+  const counts = new Map(); // key -> {who, n, late}
+  for (const it of boardTasks) {
+    const a = (it.task.assignees || [])[0];
+    const key = a ? String(a.id) : "sin";
+    if (!counts.has(key)) counts.set(key, {who: a, n: 0, late: 0});
+    const c = counts.get(key);
+    c.n++;
+    if (it.task.due_date && dayStart(new Date(Number(it.task.due_date))) < today) c.late++;
+  }
+
+  const mkChip = (key, label, initials, n, late) => {
+    const b = document.createElement("button");
+    b.className = "person-chip" + ((personFilter === null && key === null) || String(personFilter) === String(key) ? " active" : "");
+    b.innerHTML = `${initials ? `<span class="pc-avatar">${esc(initials)}</span>` : ""}<span>${esc(label)}</span><span class="pc-count">${n}</span>${late ? `<span class="pc-late">${late}</span>` : ""}`;
+    b.onclick = () => { personFilter = key; renderPersonBar(); renderBoard(); };
+    bar.appendChild(b);
+  };
+
+  mkChip(null, "Todos", null, boardTasks.length, [...counts.values()].reduce((s, c) => s + c.late, 0));
+  const people = [...counts.entries()].filter(([k]) => k !== "sin")
+    .sort((a, b) => (a[1].who.username || "").localeCompare(b[1].who.username || ""));
+  for (const [key, c] of people) {
+    const initials = (c.who.initials || c.who.username?.slice(0,2) || "?").toUpperCase();
+    mkChip(key, (c.who.username || "").split(" ")[0], initials, c.n, c.late);
+  }
+  if (counts.has("sin")) {
+    const c = counts.get("sin");
+    mkChip("sin", "Sin asignar", "—", c.n, c.late);
+  }
+}
+
+function filteredTasks() {
+  if (personFilter === null) return boardTasks;
+  if (personFilter === "sin") return boardTasks.filter(it => !(it.task.assignees || []).length);
+  return boardTasks.filter(it => (it.task.assignees || [])[0] && String(it.task.assignees[0].id) === String(personFilter));
 }
 
 async function loadBoard() {
@@ -579,13 +707,14 @@ async function loadBoard() {
   boardTasks = results.flat();
   boardFailed = failed;
   boardSources = sources.length;
+  // si la persona filtrada ya no tiene tareas en esta área, volver a "Todos"
+  if (personFilter !== null && !filteredTasks().length) personFilter = null;
+  renderPersonBar();
   renderBoard();
 }
 
-function dayStart(d) { const x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
-
 function dueInfo(t) {
-  if (!t.due_date) return {ts: null, cls: "", label: "Sin fecha"};
+  if (!t.due_date) return {ts: null, cls: "nodate", label: "＋ Fecha"};
   const ts = Number(t.due_date);
   const today = dayStart(new Date());
   const tomorrow = today + 86400000;
@@ -604,7 +733,7 @@ function taskRow(item) {
   const initials = a ? (a.initials || a.username?.slice(0,2) || "?") : null;
   const dateVal = info.ts ? new Date(info.ts).toLocaleDateString("en-CA") : "";
   return `<div class="trow" id="trow-${esc(t.id)}">
-    <div class="trow-status" style="background:${esc(t.status?.color || "#555")}"></div>
+    <div class="trow-status" style="background:${esc(t.status?.color || "#c3c7d0")}"></div>
     <div class="trow-main">
       <a class="trow-name" href="${t.url && t.url.startsWith("https://") ? esc(t.url) : "#"}" target="_blank">${esc(t.name)}</a>
       <div class="trow-sub">
@@ -614,7 +743,7 @@ function taskRow(item) {
       </div>
     </div>
     ${initials ? `<div class="trow-assignee" title="${esc(a.username||"")}" ${a.color?`style="background:${esc(a.color)}22;color:${esc(a.color)}"`:""}>${esc(initials.toUpperCase())}</div>` : ""}
-    <label class="date-chip ${info.cls}" title="Cambiar fecha de entrega">
+    <label class="date-chip ${info.cls}" title="${info.ts ? "Cambiar fecha de entrega" : "Asignar fecha de entrega"}">
       ${info.label}
       <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/>
     </label>
@@ -633,27 +762,30 @@ function sortByDue(items) {
 function renderBoard() {
   const body = document.getElementById("boardBody");
   const summary = document.getElementById("boardSummary");
+  const items = filteredTasks();
 
   const today = dayStart(new Date());
-  const late = boardTasks.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today);
-  const forToday = boardTasks.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) === today);
+  const late = items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today);
+  const forToday = items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) === today);
+  const noDate = items.filter(i => !i.task.due_date);
   summary.style.display = "flex";
-  summary.innerHTML = `<span><b>${boardTasks.length}</b> tareas abiertas</span>
+  summary.innerHTML = `<span><b>${items.length}</b> abiertas</span>
     <span class="sum-late"><b>${late.length}</b> vencidas</span>
     <span class="sum-today"><b>${forToday.length}</b> para hoy</span>
-    ${boardFailed ? `<span style="color:#a06030">⚠ ${boardFailed} lista${boardFailed>1?"s":""} no cargaron</span>` : ""}`;
+    <span class="sum-nodate"><b>${noDate.length}</b> sin fecha</span>
+    ${boardFailed ? `<span style="color:#b9770e">⚠ ${boardFailed} lista${boardFailed>1?"s":""} no cargaron</span>` : ""}`;
 
-  if (!boardTasks.length) {
+  if (!items.length) {
     body.innerHTML = boardFailed && boardFailed === boardSources
-      ? `<div class="board-empty" style="color:#854040">✕ No se pudo cargar el tablero. Revisa tu conexión o vuelve a iniciar sesión.</div>`
-      : `<div class="board-empty">No hay tareas abiertas de ${esc(LIST_LABELS[AREA])} 🎉</div>`;
+      ? `<div class="board-empty" style="color:#b03030">✕ No se pudo cargar el tablero. Revisa tu conexión o vuelve a iniciar sesión.</div>`
+      : `<div class="board-empty">No hay tareas abiertas de ${esc(LIST_LABELS[AREA])}${personFilter !== null ? " para este filtro" : ""} 🎉</div>`;
     return;
   }
 
   let html = "";
   if (boardMode === "persona") {
     const groups = new Map();
-    for (const item of boardTasks) {
+    for (const item of items) {
       const a = (item.task.assignees || [])[0];
       const key = a ? String(a.id) : "zz-sin";
       if (!groups.has(key)) groups.set(key, {who: a, items: []});
@@ -676,21 +808,21 @@ function renderBoard() {
     }
   } else {
     const buckets = [
-      {title: "🔴 Vencidas", color:"#e05252", test: ts => ts !== null && ts < today},
-      {title: "🟠 Hoy", color:"#e0a052", test: ts => ts === today},
-      {title: "🟡 Mañana", color:"#d6c454", test: ts => ts === today + 86400000},
-      {title: "Esta semana", color:"#8899cc", test: ts => ts !== null && ts > today + 86400000 && ts <= today + 7*86400000},
-      {title: "Más adelante", color:"#667", test: ts => ts !== null && ts > today + 7*86400000},
-      {title: "Sin fecha", color:"#555", test: ts => ts === null},
+      {title: "🔴 Vencidas", color:"#c0392b", test: ts => ts !== null && ts < today},
+      {title: "🟠 Hoy", color:"#b9770e", test: ts => ts === today},
+      {title: "🟡 Mañana", color:"#a08a1e", test: ts => ts === today + 86400000},
+      {title: "Esta semana", color:"#2f5fd0", test: ts => ts !== null && ts > today + 86400000 && ts <= today + 7*86400000},
+      {title: "Más adelante", color:"#6b7280", test: ts => ts !== null && ts > today + 7*86400000},
+      {title: "Sin fecha", color:"#d98324", test: ts => ts === null},
     ];
     for (const b of buckets) {
-      const items = boardTasks.filter(i => {
+      const bitems = items.filter(i => {
         const ts = i.task.due_date ? dayStart(new Date(Number(i.task.due_date))) : null;
         return b.test(ts);
       });
-      if (!items.length) continue;
-      html += `<div class="bucket-header"><span class="bucket-title" style="color:${b.color}">${b.title}</span><span class="group-count">${items.length}</span></div>`;
-      html += sortByDue(items).map(taskRow).join("");
+      if (!bitems.length) continue;
+      html += `<div class="bucket-header"><span class="bucket-title" style="color:${b.color}">${b.title}</span><span class="group-count">${bitems.length}</span></div>`;
+      html += sortByDue(bitems).map(taskRow).join("");
     }
   }
   body.innerHTML = html;
@@ -711,14 +843,16 @@ async function markDone(taskId, listId, btn) {
   try {
     const status = await doneStatusFor(listId);
     await cu(`task/${taskId}`, "PUT", {status});
+    const item = boardTasks.find(i => i.task.id === taskId);
     boardTasks = boardTasks.filter(i => i.task.id !== taskId);
+    toast(`✓ Completada: ${item ? item.task.name : "tarea"}`);
     const row = document.getElementById(`trow-${taskId}`);
-    if (row) { row.classList.add("removing"); setTimeout(renderBoard, 300); }
-    else renderBoard();
+    if (row) { row.classList.add("removing"); setTimeout(() => { renderPersonBar(); renderBoard(); }, 300); }
+    else { renderPersonBar(); renderBoard(); }
   } catch (e) {
     btn.disabled = false;
     btn.textContent = "✓ Listo";
-    alert("No se pudo completar la tarea: " + e.message);
+    toast("✕ No se pudo completar: " + e.message);
   }
 }
 
@@ -727,13 +861,79 @@ async function changeDate(taskId, dateStr) {
   if (!item || !dateStr) return;
   const [y, mo, da] = dateStr.split("-").map(Number);
   const ts = new Date(y, mo - 1, da, 12).getTime();
+  const hadDate = !!item.task.due_date;
   try {
     await cu(`task/${taskId}`, "PUT", {due_date: ts, due_date_time: false});
     item.task.due_date = String(ts);
+    toast(hadDate ? "📅 Fecha actualizada" : "📅 Fecha asignada");
     renderBoard();
   } catch (e) {
-    alert("No se pudo cambiar la fecha: " + e.message);
+    toast("✕ No se pudo cambiar la fecha: " + e.message);
   }
+}
+
+// --- Tarea rápida ---
+function openQuick() {
+  const cSel = document.getElementById("qtClient");
+  cSel.innerHTML = Object.entries(CLIENTS)
+    .sort((a, b) => a[1].name.localeCompare(b[1].name))
+    .map(([key, c]) => `<option value="${esc(key)}">${c.emoji} ${esc(c.name)}</option>`).join("");
+
+  document.getElementById("qtArea").innerHTML = LIST_DEFS
+    .map(d => `<option value="${d.key}" ${d.key === AREA ? "selected" : ""}>${d.name}</option>`).join("");
+
+  const aSel = document.getElementById("qtAssignee");
+  aSel.innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
+    .slice().sort((a, b) => a.name.localeCompare(b.name))
+    .map(m => `<option value="${m.id}" ${personFilter !== null && String(personFilter) === String(m.id) ? "selected" : ""}>${esc(m.name)}</option>`).join("");
+
+  document.getElementById("qtName").value = "";
+  document.getElementById("qtDate").value = "";
+  document.getElementById("qtPriority").value = "normal";
+  document.getElementById("quickOverlay").style.display = "flex";
+  setTimeout(() => document.getElementById("qtName").focus(), 100);
+}
+
+function closeQuick() {
+  document.getElementById("quickOverlay").style.display = "none";
+}
+
+async function createQuickTask() {
+  const btn = document.getElementById("qtCreateBtn");
+  if (btn.disabled) return;
+  const name = document.getElementById("qtName").value.trim();
+  if (!name) { document.getElementById("qtName").focus(); return; }
+
+  const client = CLIENTS[document.getElementById("qtClient").value];
+  const areaKey = document.getElementById("qtArea").value;
+  if (!client) return;
+  const listId = client.lists[areaKey] || client.lists.admin || Object.values(client.lists)[0];
+  if (!listId) { toast("✕ Este cliente no tiene listas"); return; }
+
+  const assignee = document.getElementById("qtAssignee").value;
+  const dateStr = document.getElementById("qtDate").value;
+  const priority = PRIORITY_MAP[document.getElementById("qtPriority").value] || 3;
+
+  const body = {name, priority};
+  if (assignee) body.assignees = [Number(assignee)];
+  if (dateStr) {
+    const [y, mo, da] = dateStr.split("-").map(Number);
+    body.due_date = new Date(y, mo - 1, da, 12).getTime();
+    body.due_date_time = false;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Creando...";
+  try {
+    await cu(`list/${listId}/task`, "POST", body);
+    closeQuick();
+    toast(`✓ Tarea creada: ${client.emoji} ${client.name} · ${LIST_LABELS[areaKey]}`);
+    if (areaKey === AREA) loadBoard(); // refrescar si es el área visible
+  } catch (e) {
+    toast("✕ No se pudo crear: " + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "Crear tarea →";
 }
 
 // --- New Client Modal ---
@@ -788,27 +988,18 @@ async function createClient() {
     try { await loadWorkspace(); } catch { synced = false; }
 
     closeModal();
-    switchTab("chat"); // la confirmación se muestra en el chat; asegurarse de que sea visible
     if (synced && !CLIENTS[name.toLowerCase()]) {
-      addMsg(`<div class="msg-error">⚠ El cliente quedó creado en ClickUp, pero la app lo oculta (los nombres que terminan en "Desactivado" no se muestran). Revísalo directo en ClickUp.</div>`);
+      toast("⚠ Cliente creado en ClickUp pero oculto en la app (nombres con 'Desactivado' no se muestran)");
     } else {
-      addMsg(`<div class="msg-client">
-        <div class="success-header"><div class="client-dot">✦</div><span class="client-label">Nuevo cliente creado</span></div>
-        <p class="task-name">${selectedEmoji} ${esc(name)}</p>
-        <div class="task-meta">
-          <span class="meta-key">En ClickUp</span><span class="meta-val">✓ Carpeta + ${LIST_DEFS.length} listas</span>
-          <span class="meta-key">En la app</span><span class="meta-val">${synced ? "✓ Disponible para todo el equipo" : "⚠ Recarga la página para verlo"}</span>
-        </div>
-        <div style="margin-top:10px;font-size:12px;color:#3a3a3a;">Ya puedes crear tareas para ${esc(name)} en este chat.</div>
-      </div>`);
+      toast(`✦ Cliente creado: ${selectedEmoji} ${name} (carpeta + ${LIST_DEFS.length} listas)`);
+      if (document.getElementById("boardCard").style.display !== "none") loadBoard();
     }
 
   } catch(e) {
     let hint = "";
-    if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas en el Space (los invitados no pueden) — pídele a un admin que cree el cliente o que suba tus permisos en ClickUp.";
-    else if (e.ecode === "CAT_014" || /name taken/i.test(e.message)) hint = " Ya existe una carpeta con un nombre parecido en ClickUp — revísala allá.";
-    switchTab("chat");
-    addMsg(`<div class="msg-error">✕ Error creando el cliente: ${esc(e.message)}.${esc(hint)}</div>`);
+    if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas (los invitados no pueden) — pídele a un admin.";
+    else if (e.ecode === "CAT_014" || /name taken/i.test(e.message)) hint = " Ya existe una carpeta con un nombre parecido en ClickUp.";
+    toast(`✕ Error creando el cliente: ${e.message}.${hint}`);
   }
 
   btn.disabled = false;
