@@ -140,6 +140,11 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .date-chip.nodate{background:#fff;border:1.5px dashed #d98324;color:#d98324}
 .date-chip.nodate:hover{background:#fef8f0}
 .date-chip input[type=date]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;padding:0;border:none}
+.move-btn{padding:6px 9px;background:#fff;border:1px solid #d4d7de;border-radius:8px;color:#6b7280;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .15s}
+.move-btn:hover{border-color:#2f5fd0;color:#2f5fd0}
+.move-area-btn{display:flex;align-items:center;gap:8px;width:100%;padding:11px 14px;margin-top:8px;background:#fff;border:1px solid #d4d7de;border-radius:10px;color:#1f2430;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;text-align:left}
+.move-area-btn:hover{border-color:#2f5fd0;background:#f5f7ff}
+.move-area-btn:disabled{opacity:.5;cursor:wait}
 .done-btn{padding:6px 12px;background:#fff;border:1px solid #bfe8cd;border-radius:8px;color:#178040;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;transition:background .15s}
 .done-btn:hover{background:#e8f7ee}
 .done-btn:disabled{opacity:.4;cursor:wait}
@@ -285,6 +290,18 @@ input:disabled{opacity:.5;cursor:not-allowed}
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeQuick()">Cancelar</button>
       <button class="modal-create green" id="qtCreateBtn" onclick="createQuickTask()">Crear tarea →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Mover tarea -->
+<div class="modal-overlay" id="moveOverlay" style="display:none" onclick="if(event.target===this)closeMove()">
+  <div class="modal">
+    <h3>Mover tarea de área</h3>
+    <p id="moveTaskName" style="color:#3d4354;font-weight:500"></p>
+    <div id="moveButtons"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeMove()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -747,6 +764,7 @@ function taskRow(item) {
       ${info.label}
       <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/>
     </label>
+    <button class="move-btn" title="Mover a otra área" onclick="openMove('${esc(t.id)}')">⇄</button>
     <button class="done-btn" onclick="markDone('${esc(t.id)}', '${esc(item.listId)}', this)">✓ Listo</button>
   </div>`;
 }
@@ -934,6 +952,81 @@ async function createQuickTask() {
   }
   btn.disabled = false;
   btn.textContent = "Crear tarea →";
+}
+
+// --- Mover tarea de área ---
+let moveCtx = null;
+
+function openMove(taskId) {
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item) return;
+  moveCtx = item;
+  document.getElementById("moveTaskName").textContent = `${item.client.emoji} ${item.client.name} · ${item.task.name}`;
+  const box = document.getElementById("moveButtons");
+  box.innerHTML = "";
+  for (const def of LIST_DEFS) {
+    if (def.key === AREA || !item.client.lists[def.key]) continue;
+    const b = document.createElement("button");
+    b.className = "move-area-btn";
+    b.textContent = def.name;
+    b.onclick = () => doMove(def.key, b);
+    box.appendChild(b);
+  }
+  document.getElementById("moveOverlay").style.display = "flex";
+}
+
+function closeMove() {
+  document.getElementById("moveOverlay").style.display = "none";
+  moveCtx = null;
+}
+
+async function doMove(targetKey, btn) {
+  const item = moveCtx;
+  if (!item || btn.disabled) return;
+  const targetList = item.client.lists[targetKey];
+  document.querySelectorAll(".move-area-btn").forEach(b => b.disabled = true);
+  btn.textContent = "Moviendo...";
+
+  try {
+    // La API de ClickUp no tiene "mover de lista": se copia la tarea completa
+    // y se borra la original. Comentarios y adjuntos no se pueden copiar.
+    const t = await cu(`task/${item.task.id}`);
+    const comments = await cu(`task/${item.task.id}/comment`).then(d => (d.comments || []).length).catch(() => 0);
+    const attachments = (t.attachments || []).length;
+    if (comments || attachments) {
+      const ok = confirm(`Esta tarea tiene ${comments} comentario(s) y ${attachments} adjunto(s) que NO se pueden mover — se perderían. ¿Mover de todas formas?`);
+      if (!ok) { closeMove(); return; }
+    }
+
+    const body = {
+      name: t.name,
+      description: t.description || "",
+      assignees: (t.assignees || []).map(a => a.id),
+      tags: (t.tags || []).map(x => x.name),
+    };
+    if (t.priority) body.priority = Number(t.priority.id) || 3;
+    if (t.due_date) { body.due_date = Number(t.due_date); body.due_date_time = !!t.due_date_time; }
+    if (t.start_date) body.start_date = Number(t.start_date);
+
+    let created;
+    try { created = await cu(`list/${targetList}/task`, "POST", {...body, status: t.status?.status}); }
+    catch { created = await cu(`list/${targetList}/task`, "POST", body); } // reintento sin status si el destino no lo tiene
+
+    try { await cu(`task/${item.task.id}`, "DELETE"); }
+    catch {
+      toast(`⚠ Copiada a ${LIST_LABELS[targetKey]}, pero no pude borrar la original — quedó duplicada`);
+      closeMove(); loadBoard(); return;
+    }
+
+    boardTasks = boardTasks.filter(i => i.task.id !== item.task.id);
+    toast(`⇄ Movida a ${LIST_LABELS[targetKey]}: ${t.name}`);
+    closeMove();
+    renderPersonBar();
+    renderBoard();
+  } catch (e) {
+    toast("✕ No se pudo mover: " + e.message);
+    closeMove();
+  }
 }
 
 // --- New Client Modal ---
