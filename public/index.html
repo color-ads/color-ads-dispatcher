@@ -151,6 +151,24 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .bucket-header{display:flex;align-items:center;gap:8px;padding:16px 0 8px;position:sticky;top:0;background:#fff;z-index:2}
 .bucket-title{font-size:14.5px;font-weight:700}
 
+/* Detalle de tarea / avances */
+.detail-modal{max-width:520px}
+.detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+.detail-meta span{padding:4px 10px;background:#f6f7f9;border:1px solid #e7e9ee;border-radius:14px;font-size:12px;color:#3d4354;font-weight:500}
+.comments-box{max-height:260px;overflow-y:auto;margin:14px 0 4px;display:flex;flex-direction:column;gap:8px}
+.comments-box::-webkit-scrollbar{width:6px}
+.comments-box::-webkit-scrollbar-thumb{background:#d4d7de;border-radius:4px}
+.comment{background:#f6f7f9;border-radius:10px;padding:10px 12px}
+.comment-head{display:flex;gap:8px;align-items:baseline;margin-bottom:4px}
+.comment-author{font-size:12.5px;font-weight:700;color:#1f2430}
+.comment-date{font-size:11px;color:#8a90a0}
+.comment-text{font-size:13.5px;color:#3d4354;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.comment-text a{color:#2f5fd0}
+.comments-empty{text-align:center;color:#a5aab6;font-size:13px;padding:14px}
+.detail-form{border-top:1px solid #eceef2;padding-top:12px;margin-top:10px}
+.detail-form textarea{width:100%;min-height:64px;padding:10px 12px;background:#fff;border:1px solid #d4d7de;border-radius:8px;color:#1f2430;font-size:13.5px;font-family:inherit;outline:none;resize:vertical}
+.detail-form textarea:focus{border-color:#2f5fd0;box-shadow:0 0 0 3px rgba(47,95,208,.12)}
+
 /* Toast */
 .toast{position:fixed;bottom:22px;right:22px;background:#141927;color:#fff;font-size:13.5px;font-weight:500;padding:12px 18px;border-radius:10px;box-shadow:0 4px 14px rgba(20,25,39,.25);opacity:0;transform:translateY(8px);transition:all .25s;z-index:300;pointer-events:none}
 .toast.show{opacity:1;transform:translateY(0)}
@@ -290,6 +308,34 @@ input:disabled{opacity:.5;cursor:not-allowed}
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeQuick()">Cancelar</button>
       <button class="modal-create green" id="qtCreateBtn" onclick="createQuickTask()">Crear tarea →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalle de tarea / avances -->
+<div class="modal-overlay" id="detailOverlay" style="display:none" onclick="if(event.target===this)closeDetail()">
+  <div class="modal detail-modal">
+    <h3 id="dTitle" style="line-height:1.35"></h3>
+    <div class="detail-meta" id="dMeta"></div>
+    <div class="comments-box" id="dComments"><div class="comments-empty">Cargando avances...</div></div>
+    <div class="detail-form">
+      <label>Nuevo avance / comentario</label>
+      <textarea id="dText" placeholder="Ej: Primera versión del arte lista, pendiente feedback del cliente"></textarea>
+      <div class="modal-row" style="margin-top:2px">
+        <div>
+          <label>Fecha del avance (opcional)</label>
+          <input type="date" id="dDate"/>
+        </div>
+        <div>
+          <label>Enlace (opcional)</label>
+          <input type="text" id="dLink" placeholder="https://..."/>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeDetail()">Cerrar</button>
+        <button class="modal-create" id="dAddBtn" onclick="addComment()">Agregar avance →</button>
+      </div>
+      <a id="dClickupLink" class="task-link" href="#" target="_blank" style="display:block;text-align:center;margin-top:10px">Abrir en ClickUp →</a>
     </div>
   </div>
 </div>
@@ -752,7 +798,7 @@ function taskRow(item) {
   return `<div class="trow" id="trow-${esc(t.id)}">
     <div class="trow-status" style="background:${esc(t.status?.color || "#c3c7d0")}"></div>
     <div class="trow-main">
-      <a class="trow-name" href="${t.url && t.url.startsWith("https://") ? esc(t.url) : "#"}" target="_blank">${esc(t.name)}</a>
+      <a class="trow-name" href="#" onclick="event.preventDefault();openDetail('${esc(t.id)}')" title="Ver avances y comentarios">${esc(t.name)}</a>
       <div class="trow-sub">
         <span class="trow-client">${c.emoji} ${esc(c.name)}</span>
         <span>${esc(t.status?.status || "")}</span>
@@ -952,6 +998,106 @@ async function createQuickTask() {
   }
   btn.disabled = false;
   btn.textContent = "Crear tarea →";
+}
+
+// --- Detalle de tarea: avances y comentarios ---
+let detailCtx = null;
+
+function linkify(s) {
+  // esc() primero: las URLs quedan como texto seguro y luego se convierten en <a>
+  return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
+}
+
+function fmtCommentDate(ms) {
+  return new Date(Number(ms)).toLocaleDateString("es-CO", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"});
+}
+
+async function openDetail(taskId) {
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item) return;
+  detailCtx = item;
+  const t = item.task;
+  document.getElementById("dTitle").textContent = t.name;
+  const info = dueInfo(t);
+  const a = (t.assignees || [])[0];
+  document.getElementById("dMeta").innerHTML = `
+    <span>${item.client.emoji} ${esc(item.client.name)}</span>
+    <span>${esc(LIST_LABELS[AREA] || "")}</span>
+    <span>${esc(t.status?.status || "")}</span>
+    <span>👤 ${a ? esc(a.username) : "Sin asignar"}</span>
+    <span>📅 ${info.ts ? esc(info.label) : "Sin fecha"}</span>`;
+  const cl = document.getElementById("dClickupLink");
+  if (t.url && t.url.startsWith("https://")) { cl.href = t.url; cl.style.display = "block"; }
+  else cl.style.display = "none";
+  document.getElementById("dText").value = "";
+  document.getElementById("dDate").value = "";
+  document.getElementById("dLink").value = "";
+  document.getElementById("dComments").innerHTML = `<div class="comments-empty">Cargando avances...</div>`;
+  document.getElementById("detailOverlay").style.display = "flex";
+  loadComments(taskId);
+}
+
+async function loadComments(taskId) {
+  try {
+    const d = await cu(`task/${taskId}/comment`);
+    if (detailCtx?.task.id !== taskId) return; // el usuario cerró o abrió otra tarea
+    const comments = (d.comments || []).slice().sort((a, b) => Number(a.date) - Number(b.date));
+    const box = document.getElementById("dComments");
+    if (!comments.length) {
+      box.innerHTML = `<div class="comments-empty">Sin avances todavía — agrega el primero abajo.</div>`;
+      return;
+    }
+    box.innerHTML = comments.map(c => `<div class="comment">
+      <div class="comment-head">
+        <span class="comment-author">${esc(c.user?.username || "")}</span>
+        <span class="comment-date">${fmtCommentDate(c.date)}</span>
+      </div>
+      <div class="comment-text">${linkify(c.comment_text || "")}</div>
+    </div>`).join("");
+    box.scrollTop = box.scrollHeight;
+  } catch (e) {
+    document.getElementById("dComments").innerHTML = `<div class="comments-empty">✕ No se pudieron cargar los avances</div>`;
+  }
+}
+
+function closeDetail() {
+  document.getElementById("detailOverlay").style.display = "none";
+  detailCtx = null;
+}
+
+async function addComment() {
+  const btn = document.getElementById("dAddBtn");
+  if (btn.disabled || !detailCtx) return;
+  const text = document.getElementById("dText").value.trim();
+  const dateStr = document.getElementById("dDate").value;
+  let link = document.getElementById("dLink").value.trim();
+  if (!text && !link) { document.getElementById("dText").focus(); return; }
+  if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;
+
+  let fecha = "";
+  if (dateStr) {
+    const [y, mo, da] = dateStr.split("-").map(Number);
+    fecha = new Date(y, mo - 1, da, 12).toLocaleDateString("es-CO", {day:"numeric", month:"short", year:"numeric"});
+  }
+  const parts = [];
+  if (fecha) parts.push(`📅 Avance del ${fecha}`);
+  if (text) parts.push(text);
+  if (link) parts.push(`🔗 ${link}`);
+
+  btn.disabled = true;
+  btn.textContent = "Guardando...";
+  try {
+    await cu(`task/${detailCtx.task.id}/comment`, "POST", {comment_text: parts.join("\n"), notify_all: false});
+    document.getElementById("dText").value = "";
+    document.getElementById("dDate").value = "";
+    document.getElementById("dLink").value = "";
+    toast("💬 Avance guardado");
+    loadComments(detailCtx.task.id);
+  } catch (e) {
+    toast("✕ No se pudo guardar: " + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = "Agregar avance →";
 }
 
 // --- Mover tarea de área ---
