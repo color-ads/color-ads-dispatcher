@@ -132,7 +132,11 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .trow-name:hover{color:#2f5fd0}
 .trow-sub{display:flex;gap:8px;margin-top:3px;font-size:12px;color:#8a90a0;align-items:center;flex-wrap:wrap}
 .trow-client{color:#555c6e;font-weight:500}
-.trow-assignee{width:24px;height:24px;border-radius:50%;background:#e8eefc;color:#2f5fd0;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.trow-assignee{width:24px;height:24px;border-radius:50%;background:#e8eefc;color:#2f5fd0;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.trow-assignee:hover{border-color:#2f5fd0;transform:scale(1.1)}
+.trow-assignee.unassigned{background:#fff;border:1.5px dashed #a5aab6;color:#a5aab6;font-size:12px}
+.trow-assignee.unassigned:hover{border-color:#2f5fd0;color:#2f5fd0}
+.assign-btn-current{border-color:#2f5fd0 !important;background:#f5f7ff !important}
 .date-chip{position:relative;padding:6px 11px;background:#f6f7f9;border:1px solid #d4d7de;border-radius:8px;font-size:12px;font-weight:600;color:#555c6e;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .date-chip:hover{border-color:#a5aab6}
 .date-chip.late{background:#fdecec;border-color:#f0b4b4;color:#c0392b}
@@ -363,6 +367,18 @@ input:disabled{opacity:.5;cursor:not-allowed}
         <button class="modal-create" id="dAddBtn" onclick="addComment()">Agregar avance →</button>
       </div>
       <a id="dClickupLink" class="task-link" href="#" target="_blank" style="display:block;text-align:center;margin-top:10px">Abrir en ClickUp →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Asignar responsable -->
+<div class="modal-overlay" id="assignOverlay" style="display:none" onclick="if(event.target===this)closeAssign()">
+  <div class="modal">
+    <h3>Responsable de la tarea</h3>
+    <p id="aTitle" style="color:#3d4354;font-weight:500"></p>
+    <div id="aButtons" style="max-height:320px;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeAssign()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -832,7 +848,9 @@ function taskRow(item) {
         ${a && boardMode !== "persona" ? `<span>· ${esc(a.username || "")}</span>` : ""}
       </div>
     </div>
-    ${initials ? `<div class="trow-assignee" title="${esc(a.username||"")}" ${a.color?`style="background:${esc(a.color)}22;color:${esc(a.color)}"`:""}>${esc(initials.toUpperCase())}</div>` : ""}
+    ${initials
+      ? `<div class="trow-assignee" title="Cambiar responsable (${esc(a.username||"")})" onclick="openAssign('${esc(t.id)}')" ${a.color?`style="background:${esc(a.color)}22;color:${esc(a.color)}"`:""}>${esc(initials.toUpperCase())}</div>`
+      : `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>`}
     <label class="date-chip ${info.cls}" title="${info.ts ? "Cambiar fecha de entrega" : "Asignar fecha de entrega"}">
       ${info.label}
       <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/>
@@ -1125,6 +1143,66 @@ async function addComment() {
   }
   btn.disabled = false;
   btn.textContent = "Agregar avance →";
+}
+
+// --- Asignar / cambiar responsable ---
+let assignCtx = null;
+
+function openAssign(taskId) {
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item) return;
+  assignCtx = item;
+  const current = (item.task.assignees || [])[0];
+  document.getElementById("aTitle").textContent = `${item.client.emoji} ${item.client.name} · ${item.task.name}`;
+  const box = document.getElementById("aButtons");
+  box.innerHTML = "";
+  for (const m of MEMBERS.slice().sort((a, b) => a.name.localeCompare(b.name))) {
+    const b = document.createElement("button");
+    const isCurrent = current && String(current.id) === String(m.id);
+    b.className = "move-area-btn" + (isCurrent ? " assign-btn-current" : "");
+    b.innerHTML = `<span class="pc-avatar">${esc(m.name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase())}</span> ${esc(m.name)}${isCurrent ? " · actual" : ""}`;
+    b.onclick = () => doAssign(m.id, b);
+    box.appendChild(b);
+  }
+  if (current) {
+    const b = document.createElement("button");
+    b.className = "move-area-btn";
+    b.style.color = "#b03030";
+    b.textContent = "✕ Quitar responsable";
+    b.onclick = () => doAssign(null, b);
+    box.appendChild(b);
+  }
+  document.getElementById("assignOverlay").style.display = "flex";
+}
+
+function closeAssign() {
+  document.getElementById("assignOverlay").style.display = "none";
+  assignCtx = null;
+}
+
+async function doAssign(memberId, btn) {
+  const item = assignCtx;
+  if (!item || btn.disabled) return;
+  document.querySelectorAll("#aButtons .move-area-btn").forEach(b => b.disabled = true);
+  btn.textContent = "Guardando...";
+  try {
+    const currentIds = (item.task.assignees || []).map(a => a.id);
+    const add = memberId ? [Number(memberId)] : [];
+    const rem = currentIds.filter(id => !add.includes(Number(id)) && !add.includes(id));
+    // En update, assignees es un objeto {add, rem} (distinto al create, que es array)
+    await cu(`task/${item.task.id}`, "PUT", {assignees: {add, rem}});
+    const fresh = await cu(`task/${item.task.id}`);
+    const idx = boardTasks.findIndex(i => i.task.id === item.task.id);
+    if (idx >= 0) boardTasks[idx].task = fresh;
+    const m = memberId ? MEMBERS.find(x => String(x.id) === String(memberId)) : null;
+    toast(m ? `👤 Asignada a ${m.name}` : "👤 Responsable quitado");
+    closeAssign();
+    renderPersonBar();
+    renderBoard();
+  } catch (e) {
+    toast("✕ No se pudo asignar: " + e.message);
+    closeAssign();
+  }
 }
 
 // --- Mover tarea de área ---
