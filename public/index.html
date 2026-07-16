@@ -193,7 +193,34 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .modal-create:disabled{opacity:.45;cursor:not-allowed}
 .modal-create.green{background:#178040;border-color:#178040}
 .modal-create.green:hover{background:#126634}
-@media (max-width:640px){.board-toolbar{gap:6px}.area-chip{padding:6px 10px;font-size:12px}.modal-row{flex-direction:column;gap:0}}
+@media (max-width:640px){
+  body{padding:12px 10px}
+  .header{margin-bottom:12px}
+  .header p{display:none}
+  .header h1{font-size:15px}
+  .header-user{display:none !important}
+  .tabs{flex-wrap:wrap;gap:6px}
+  .tab{white-space:nowrap;padding:8px 13px;font-size:13px}
+  .tab-right{gap:6px;margin-left:auto}
+  .new-client-btn,.token-btn{white-space:nowrap}
+  .board-toolbar{gap:6px;padding:10px 12px 8px}
+  .area-chip{padding:6px 10px;font-size:12px}
+  .quick-btn{width:100%;order:5;padding:10px}
+  .mode-toggle{order:6}
+  .refresh-btn{order:7;margin-left:auto}
+  .person-bar{padding:8px 12px;gap:5px}
+  .board-summary{gap:10px;font-size:12.5px;padding:10px 12px}
+  .board-body{max-height:none;overflow:visible;padding:4px 10px 12px}
+  .group-header,.bucket-header{top:-12px}
+  /* Filas de tarea en dos líneas: nombre arriba, acciones abajo */
+  .trow{flex-wrap:wrap;gap:8px;padding:10px}
+  .trow-main{flex:1 1 calc(100% - 17px)}
+  .trow-assignee{margin-left:17px}
+  .date-chip{margin-left:auto}
+  .modal{padding:18px}
+  .modal-row{flex-direction:column;gap:0}
+  .messages{height:340px}
+}
 </style>
 </head>
 <body>
