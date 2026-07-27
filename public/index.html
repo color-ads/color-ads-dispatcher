@@ -1309,9 +1309,10 @@ async function createClient() {
 
   try {
     btn.textContent = "Creando carpeta...";
-    let folder;
+    let folder, createdNew = false;
     try {
       folder = await cu(`space/${SPACE_ID}/folder`, "POST", {name: `${selectedEmoji} ${name}`});
+      createdNew = true;
     } catch (e) {
       if (!(e.ecode === "CAT_014" || /name taken/i.test(e.message))) throw e;
       // La carpeta ya existe (p. ej. quedó a medias en un intento anterior): adoptarla y completar lo que falte
@@ -1322,9 +1323,19 @@ async function createClient() {
 
     const existing = new Set((folder.lists || []).map(l => listKeyFor(l.name)).filter(Boolean));
     const missing = LIST_DEFS.filter(def => !existing.has(def.key));
-    for (let i = 0; i < missing.length; i++) {
-      btn.textContent = `Creando lista ${i + 1}/${missing.length}...`;
-      await cu(`folder/${folder.id}/list`, "POST", {name: missing[i].name});
+    let createdCount = 0;
+    try {
+      for (let i = 0; i < missing.length; i++) {
+        btn.textContent = `Creando lista ${i + 1}/${missing.length}...`;
+        await cu(`folder/${folder.id}/list`, "POST", {name: missing[i].name});
+        createdCount++;
+      }
+    } catch (e) {
+      // Si el plan bloqueó la primera lista de una carpeta recién creada, no dejar la carpeta vacía huérfana
+      if (createdNew && createdCount === 0 && !(folder.lists || []).length) {
+        try { await cu(`folder/${folder.id}`, "DELETE"); } catch {}
+      }
+      throw e;
     }
 
     btn.textContent = "Sincronizando...";
@@ -1341,7 +1352,8 @@ async function createClient() {
 
   } catch(e) {
     let hint = "";
-    if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas (los invitados no pueden) — pídele a un admin.";
+    if (e.ecode === "HLIMIT_005" || /list limit/i.test(e.message)) hint = " El plan de ClickUp llegó al tope de 100 listas en el Space — archiva las listas de clientes inactivos (o mejora el plan) y vuelve a intentar.";
+    else if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas (los invitados no pueden) — pídele a un admin.";
     else if (e.ecode === "CAT_014" || /name taken/i.test(e.message)) hint = " Ya existe una carpeta con un nombre parecido en ClickUp.";
     toast(`✕ Error creando el cliente: ${e.message}.${hint}`);
   }
