@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Color Ads — Task Dispatcher</title>
+<title>DOM — Tablero de tareas · Color Ads</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f2f3f5;color:#1f2430;min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
@@ -230,10 +230,10 @@ input:disabled{opacity:.5;cursor:not-allowed}
 <body>
 <div class="container">
   <div class="header">
-    <div class="header-icon">⚡</div>
+    <div class="header-icon">🎯</div>
     <div>
-      <h1>Color Ads — Task Dispatcher</h1>
-      <p>Tráfico diario · Powered by Claude + ClickUp</p>
+      <h1>DOM — Tablero de tareas</h1>
+      <p>Color Ads · seguimiento en vivo</p>
     </div>
     <div class="header-user" id="headerUser" style="display:none"></div>
     <div class="dot off" id="statusDot" style="margin-left:10px"></div>
@@ -242,15 +242,18 @@ input:disabled{opacity:.5;cursor:not-allowed}
   <!-- Login -->
   <div class="card login-card" id="setupCard">
     <div class="setup-body">
-      <h2>Entrar al dispatcher</h2>
-      <p class="sub">Inicia sesión con tu cuenta de ClickUp del equipo Color Ads.</p>
-      <button class="btn btn-primary" id="oauthBtn" onclick="startOAuth()">Entrar con ClickUp →</button>
+      <h2>Entrar al tablero de DOM</h2>
+      <p class="sub">Acceso para el equipo DOM con código, o para Color Ads con su cuenta de ClickUp.</p>
+      <label style="display:block;font-size:12.5px;font-weight:600;color:#555c6e;margin-bottom:5px">Código de acceso</label>
+      <input type="password" id="codeInput" placeholder="Código entregado por Color Ads" autocomplete="off" onkeydown="if(event.key==='Enter')enterClient()"/>
+      <button class="btn btn-primary" id="clientBtn" onclick="enterClient()">Ver tablero →</button>
       <div class="setup-error" id="setupError"></div>
-      <button class="manual-toggle" onclick="toggleManual()">¿Problemas? Usar token manual</button>
-      <div class="manual-section" id="manualSection">
-        <p class="sub">Pega tu API token personal: <a href="https://app.clickup.com" target="_blank">app.clickup.com</a> → Avatar → Settings → Apps → API Token</p>
-        <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off"/>
-        <button class="btn" id="connectBtn" onclick="saveToken()">Conectar con token →</button>
+      <button class="manual-toggle" onclick="toggleTeam()">¿Eres del equipo Color Ads?</button>
+      <div class="manual-section" id="teamSection">
+        <button class="btn" onclick="startOAuth()">Entrar con ClickUp →</button>
+        <p class="sub" style="margin:12px 0 6px">O pega tu API token personal:</p>
+        <input type="password" id="tokenInput" placeholder="pk_xxxxxxxx_..." autocomplete="off" onkeydown="if(event.key==='Enter')enterTeam()"/>
+        <button class="btn" id="teamBtn" onclick="enterTeam()">Conectar con token →</button>
       </div>
     </div>
   </div>
@@ -258,10 +261,9 @@ input:disabled{opacity:.5;cursor:not-allowed}
   <!-- App -->
   <div id="appShell" style="display:none">
     <div class="tabs">
-      <button class="tab active" id="tabBoard" onclick="switchTab('board')">📋 Tablero</button>
-      <button class="tab" id="tabChat" onclick="switchTab('chat')">⚡ Crear con IA</button>
+      <span class="tab active" style="cursor:default">🎯 DOM</span>
+      <span id="roBadge" style="display:none;padding:7px 13px;background:#fef3e2;border:1px solid #f0d6a8;border-radius:10px;color:#b9770e;font-size:12px;font-weight:600">👁 Solo lectura</span>
       <div class="tab-right">
-        <button class="new-client-btn" onclick="openNewClient()">+ Nuevo cliente</button>
         <button class="token-btn" onclick="logout()">Salir</button>
       </div>
     </div>
@@ -274,84 +276,18 @@ input:disabled{opacity:.5;cursor:not-allowed}
         <div class="board-loading">Cargando tablero...</div>
       </div>
     </div>
-
-    <div class="card" id="chatCard" style="display:none">
-      <div class="chat-header"><span>Crear tareas con lenguaje natural</span><div class="dot"></div></div>
-      <div class="messages" id="messages"></div>
-      <div class="input-row">
-        <input type="text" id="msgInput" placeholder='Ej: "Tarea para Heiss: guion mayo, para Liliana, urgente"' onkeydown="if(event.key==='Enter')sendMsg()"/>
-        <button class="send-btn" id="sendBtn" onclick="sendMsg()">Crear tarea →</button>
-      </div>
-    </div>
   </div>
 </div>
 
-<!-- Modal: Nuevo cliente -->
-<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <h3>Agregar nuevo cliente</h3>
-    <p>Se crearán la carpeta y sus 5 listas automáticamente en ClickUp</p>
-    <label>Nombre del cliente</label>
-    <input type="text" id="newClientName" placeholder="Ej: Restaurante El Árbol" onkeydown="if(event.key==='Enter')createClient()"/>
-    <label>Emoji</label>
-    <div class="modal-emoji-row" id="emojiRow"></div>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
-      <button class="modal-create" id="createBtn" onclick="createClient()">Crear cliente en ClickUp →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Tarea rápida -->
-<div class="modal-overlay" id="quickOverlay" style="display:none" onclick="if(event.target===this)closeQuick()">
-  <div class="modal">
-    <h3>Tarea rápida</h3>
-    <p>Se crea directo en ClickUp, sin pasar por la IA</p>
-    <label>¿Qué hay que hacer?</label>
-    <input type="text" id="qtName" placeholder="Ej: Ajustar banner de la promo" onkeydown="if(event.key==='Enter')createQuickTask()"/>
-    <div class="modal-row">
-      <div>
-        <label>Cliente</label>
-        <select id="qtClient"></select>
-      </div>
-      <div>
-        <label>Área</label>
-        <select id="qtArea"></select>
-      </div>
-    </div>
-    <div class="modal-row">
-      <div>
-        <label>Responsable</label>
-        <select id="qtAssignee"></select>
-      </div>
-      <div>
-        <label>Fecha de entrega</label>
-        <input type="date" id="qtDate"/>
-      </div>
-    </div>
-    <label>Prioridad</label>
-    <select id="qtPriority">
-      <option value="normal" selected>Normal</option>
-      <option value="urgent">🔴 Urgente</option>
-      <option value="high">🟠 Alta</option>
-      <option value="low">Baja</option>
-    </select>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeQuick()">Cancelar</button>
-      <button class="modal-create green" id="qtCreateBtn" onclick="createQuickTask()">Crear tarea →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Detalle de tarea / avances -->
+<!-- Modal: Detalle / avances -->
 <div class="modal-overlay" id="detailOverlay" style="display:none" onclick="if(event.target===this)closeDetail()">
   <div class="modal detail-modal">
     <h3 id="dTitle" style="line-height:1.35"></h3>
     <div class="detail-meta" id="dMeta"></div>
     <div class="comments-box" id="dComments"><div class="comments-empty">Cargando avances...</div></div>
-    <div class="detail-form">
+    <div class="detail-form" id="dForm">
       <label>Nuevo avance / comentario</label>
-      <textarea id="dText" placeholder="Ej: Primera versión del arte lista, pendiente feedback del cliente"></textarea>
+      <textarea id="dText" placeholder="Ej: Primera versión lista, pendiente feedback"></textarea>
       <div class="modal-row" style="margin-top:2px">
         <div>
           <label>Fecha del avance (opcional)</label>
@@ -366,12 +302,54 @@ input:disabled{opacity:.5;cursor:not-allowed}
         <button class="modal-cancel" onclick="closeDetail()">Cerrar</button>
         <button class="modal-create" id="dAddBtn" onclick="addComment()">Agregar avance →</button>
       </div>
-      <a id="dClickupLink" class="task-link" href="#" target="_blank" style="display:block;text-align:center;margin-top:10px">Abrir en ClickUp →</a>
+      <a id="dClickupLink" class="task-link" href="#" target="_blank" style="display:none;text-align:center;margin-top:10px">Abrir en ClickUp →</a>
+    </div>
+    <div class="modal-actions" id="dCloseRO" style="display:none">
+      <button class="modal-cancel" onclick="closeDetail()">Cerrar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Asignar responsable -->
+<!-- Modal: Tarea rápida (solo equipo) -->
+<div class="modal-overlay" id="quickOverlay" style="display:none" onclick="if(event.target===this)closeQuick()">
+  <div class="modal">
+    <h3>Tarea rápida para DOM</h3>
+    <p>Se crea directo en ClickUp</p>
+    <label>¿Qué hay que hacer?</label>
+    <input type="text" id="qtName" placeholder="Ej: Ajustar banner de la promo" onkeydown="if(event.key==='Enter')createQuickTask()"/>
+    <div class="modal-row">
+      <div>
+        <label>Área</label>
+        <select id="qtArea"></select>
+      </div>
+      <div>
+        <label>Responsable</label>
+        <select id="qtAssignee"></select>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
+        <label>Fecha de entrega</label>
+        <input type="date" id="qtDate"/>
+      </div>
+      <div>
+        <label>Prioridad</label>
+        <select id="qtPriority">
+          <option value="normal" selected>Normal</option>
+          <option value="urgent">🔴 Urgente</option>
+          <option value="high">🟠 Alta</option>
+          <option value="low">Baja</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeQuick()">Cancelar</button>
+      <button class="modal-create green" id="qtCreateBtn" onclick="createQuickTask()">Crear tarea →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Asignar responsable (solo equipo) -->
 <div class="modal-overlay" id="assignOverlay" style="display:none" onclick="if(event.target===this)closeAssign()">
   <div class="modal">
     <h3>Responsable de la tarea</h3>
@@ -383,7 +361,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </div>
 
-<!-- Modal: Mover tarea -->
+<!-- Modal: Mover de área (solo equipo) -->
 <div class="modal-overlay" id="moveOverlay" style="display:none" onclick="if(event.target===this)closeMove()">
   <div class="modal">
     <h3>Mover tarea de área</h3>
@@ -398,12 +376,9 @@ input:disabled{opacity:.5;cursor:not-allowed}
 <div class="toast" id="toast"></div>
 
 <script>
-const SPACE_ID = "90130971239";
-const TEAM_ID  = "9013231845";
-const OPS_FOLDER_ID = "901318180618"; // 🏢 Operaciones - Color Ads LLC (interna, no es cliente)
-const EMOJIS = ["🏢","🏨","🏠","🏗️","🌿","🌴","🌳","🎯","🍸","🌸","⚙️","🚀","💡","🎨","🏪","🏬","🎪","🌟"];
-let selectedEmoji = "🏢";
-
+const DOM_FOLDER_ID = "901318180640";
+const TEAM_ID = "9013231845";
+const CLIENT = {name: "DOM", emoji: "🎯"};
 const LIST_DEFS = [
   {key:"paid",       name:"📣 Paid Media",           chip:"📣 Paid"},
   {key:"disenio",    name:"🎨 Diseño & Contenido",   chip:"🎨 Diseño"},
@@ -414,20 +389,28 @@ const LIST_DEFS = [
 const LIST_LABELS = Object.fromEntries(LIST_DEFS.map(d => [d.key, d.name.replace(/^\S+\s/, "")]));
 const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
 
+let mode = null;            // "team" | "client"
 let clickupToken = "";
-let CLIENTS = {};
+let accessCode = "";
+let DOMLISTS = {};          // key → list id (solo modo equipo)
 let MEMBERS = [];
 let ME = null;
 let AREA = "disenio";
-let boardMode = "persona"; // "persona" | "fecha"
-let personFilter = null;   // null = todos | "sin" = sin asignar | id numérico
+let boardMode = "persona";
+let personFilter = null;
 let boardTasks = [];
 let boardLoadSeq = 0;
-let boardFailed = 0;
-let boardSources = 0;
 const doneStatusCache = {};
 
-// --- Proxy a ClickUp ---
+const RO = () => mode === "client";
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),3200)}
+function listKeyFor(n){n=n.toLowerCase();if(n.includes("paid"))return"paid";if(n.includes("dise"))return"disenio";if(n.includes("estrategia"))return"estrategia";if(n.includes("admin"))return"admin";if(n.includes("desarrollo")||n.includes("web"))return"desweb";return null}
+function dayStart(d){const x=new Date(d);x.setHours(0,0,0,0);return x.getTime()}
+function linkify(s){return esc(s).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank">$1</a>')}
+function fmtCommentDate(ms){return new Date(Number(ms)).toLocaleDateString("es-CO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+
 async function cu(path, method = "GET", body = null) {
   const r = await fetch(`/api/clickup?path=${encodeURIComponent(path)}`, {
     method,
@@ -435,276 +418,101 @@ async function cu(path, method = "GET", body = null) {
     body: body ? JSON.stringify(body) : undefined
   });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    const err = new Error(d.err || d.ECODE || `Error ${r.status} de ClickUp`);
-    err.status = r.status;
-    err.ecode = d.ECODE || "";
-    throw err;
-  }
+  if (!r.ok) { const err = new Error(d.err || d.ECODE || `Error ${r.status} de ClickUp`); err.status = r.status; throw err; }
   return d;
 }
 
-function esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+async function domApi(params) {
+  const r = await fetch(`/api/dom?${params}`, { headers: {"X-Access-Code": accessCode} });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const err = new Error(d.err || `Error ${r.status}`); err.status = r.status; throw err; }
+  return d;
 }
 
-function toast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove("show"), 3200);
-}
-
-function listKeyFor(listName) {
-  const n = listName.toLowerCase();
-  if (n.includes("paid")) return "paid";
-  if (n.includes("dise")) return "disenio";
-  if (n.includes("estrategia")) return "estrategia";
-  if (n.includes("admin")) return "admin";
-  if (n.includes("desarrollo") || n.includes("web")) return "desweb";
-  return null;
-}
-
-function splitEmoji(folderName) {
-  const parts = folderName.trim().split(/\s+/);
-  if (parts.length > 1 && /^[^\p{L}\p{N}]+$/u.test(parts[0])) {
-    return {emoji: parts[0], name: parts.slice(1).join(" ")};
-  }
-  return {emoji: "🏢", name: folderName.trim()};
-}
-
-// Busca el cliente por key exacta o por primera palabra; exige match único
-// para no archivar tareas en el cliente equivocado (ej. "dominios..." ≠ "dom").
-function findClient(rawKey) {
-  if (!rawKey) return null;
-  const k = String(rawKey).toLowerCase().trim();
-  if (CLIENTS[k]) return CLIENTS[k];
-  const first = k.split(/\s+/)[0];
-  const cands = Object.keys(CLIENTS).filter(key => key === first || key.split(/\s+/)[0] === first);
-  return cands.length === 1 ? CLIENTS[cands[0]] : null;
-}
-
-async function loadWorkspace() {
-  const [folderData, teamData, userData] = await Promise.all([
-    cu(`space/${SPACE_ID}/folder?archived=false`),
-    cu("team"),
-    cu("user"),
-  ]);
-
-  CLIENTS = {};
-  for (const f of folderData.folders || []) {
-    if (f.id === OPS_FOLDER_ID || /desactivad[oa]\s*$/i.test(f.name)) continue;
-    const {emoji, name} = splitEmoji(f.name);
-    const lists = {};
-    for (const l of f.lists || []) {
-      const key = listKeyFor(l.name);
-      if (key && !lists[key]) lists[key] = l.id;
-    }
-    if (!Object.keys(lists).length) continue;
-    CLIENTS[name.toLowerCase()] = {name, emoji, folderId: f.id, lists};
-  }
-
-  const team = (teamData.teams || []).find(t => String(t.id) === TEAM_ID) || (teamData.teams || [])[0];
-  MEMBERS = (team?.members || [])
-    .map(m => ({id: m.user.id, name: m.user.username || m.user.email || `Usuario ${m.user.id}`}))
-    .filter(m => m.id);
-  ME = userData.user || null;
-
-  if (!Object.keys(CLIENTS).length) throw new Error("No encontré carpetas de clientes en el espacio Color Ads. ¿Tu usuario tiene acceso al workspace?");
-}
-
-function buildSystemPrompt() {
-  const today = new Date().toLocaleDateString("en-CA");
-  return `Eres el dispatcher de tareas de Color Ads LLC. Interpreta mensajes en lenguaje natural y devuelve JSON estructurado.
-
-CLIENTES (usa el client_key EXACTO de esta lista, el que mejor corresponda al mencionado):
-${Object.keys(CLIENTS).map(k => `"${k}"`).join(", ")}
-
-TIPOS DE LISTA (list_type):
-"paid"       → campañas, pauta, ads, meta, google, presupuesto, tráfico pagado
-"disenio"    → artes, guiones, contenido, fotos, videos, diseño, creativos, copy, edición
-"estrategia" → reportes, análisis, métricas, estrategia, resultados, planificación
-"admin"      → reuniones, contratos, facturación, coordinación, llamadas, onboarding
-"desweb"     → página web, landing, sitio, desarrollo, hosting, dominio, formularios web, integraciones, SEO técnico
-
-EQUIPO (usa el assignee_id numérico; reconoce apodos y nombres parciales, ej. "Nico" → Nicolás):
-${MEMBERS.map(m => `${m.id} = ${m.name}`).join("\n")}
-
-PRIORIDADES: urgent, high, normal, low — default: normal
-HOY: ${today}
-
-Responde ÚNICAMENTE con JSON válido sin markdown:
-{"confirmed":true,"task_name":"...","client_key":"...","list_type":"...","assignee_id":123|null,"priority":"...","due_date":"YYYY-MM-DD|null","description":"..."}
-
-Si falta cliente o tarea clara:
-{"confirmed":false,"error":"..."}`;
-}
-
-// --- Auth ---
-function startOAuth() {
-  window.location.href = "/api/auth";
-}
-
-function toggleManual() {
-  const s = document.getElementById("manualSection");
+// --- Login ---
+function toggleTeam() {
+  const s = document.getElementById("teamSection");
   s.style.display = s.style.display === "block" ? "none" : "block";
 }
-
-async function connect(token) {
-  clickupToken = token;
-  const errBox = document.getElementById("setupError");
-  const oauthBtn = document.getElementById("oauthBtn");
-  const connectBtn = document.getElementById("connectBtn");
-  oauthBtn.disabled = connectBtn.disabled = true;
-  oauthBtn.textContent = "Conectando con ClickUp...";
-  errBox.style.display = "none";
-  try {
-    await loadWorkspace();
-    localStorage.setItem("cu_token", token);
-    const rt = localStorage.getItem("return_to");
-    if (rt) { localStorage.removeItem("return_to"); window.location.href = rt; return; }
-    document.getElementById("setupCard").style.display = "none";
-    document.getElementById("appShell").style.display = "block";
-    document.getElementById("statusDot").classList.remove("off");
-    if (ME) {
-      const hu = document.getElementById("headerUser");
-      hu.style.display = "flex";
-      hu.textContent = ME.username || ME.email || "";
-    }
-    document.getElementById("messages").innerHTML = "";
-    addMsg(`<div class="msg-system">Hola${ME?.username ? " " + esc(ME.username.split(" ")[0]) : ""} 👋 Conectado a ClickUp: ${Object.keys(CLIENTS).length} clientes. Escríbeme una tarea y la creo.</div>`);
-    renderAreaChips();
-    switchTab("board"); // el tablero es la pantalla principal del tráfico diario
-  } catch (e) {
-    clickupToken = "";
-    // Solo borrar el token guardado si ClickUp lo rechazó; un error de red no lo invalida
-    if (e.status === 401 || e.status === 403) localStorage.removeItem("cu_token");
-    errBox.textContent = "✕ " + e.message;
-    errBox.style.display = "block";
-  }
-  oauthBtn.disabled = connectBtn.disabled = false;
-  oauthBtn.textContent = "Entrar con ClickUp →";
+function startOAuth() {
+  localStorage.setItem("return_to", "/dom");
+  window.location.href = "/api/auth";
+}
+function showError(msg) {
+  const e = document.getElementById("setupError");
+  e.textContent = "✕ " + msg;
+  e.style.display = "block";
+}
+function showApp() {
+  document.getElementById("setupCard").style.display = "none";
+  document.getElementById("appShell").style.display = "block";
+  document.getElementById("statusDot").classList.remove("off");
+  document.getElementById("roBadge").style.display = RO() ? "inline-block" : "none";
+  renderAreaChips();
+  loadBoard();
 }
 
-function saveToken() {
-  const val = document.getElementById("tokenInput").value.trim();
-  if (!val) return;
-  connect(val);
+async function enterClient() {
+  const code = document.getElementById("codeInput").value.trim();
+  if (!code) return;
+  const btn = document.getElementById("clientBtn");
+  btn.disabled = true; btn.textContent = "Entrando...";
+  document.getElementById("setupError").style.display = "none";
+  accessCode = code;
+  try {
+    await domApi(`action=board&area=${AREA}`);
+    mode = "client";
+    localStorage.setItem("dom_code", code);
+    showApp();
+  } catch (e) {
+    accessCode = "";
+    if (e.status === 401) localStorage.removeItem("dom_code");
+    showError(e.message);
+  }
+  btn.disabled = false; btn.textContent = "Ver tablero →";
+}
+
+async function enterTeam(tokenArg) {
+  const token = tokenArg || document.getElementById("tokenInput").value.trim();
+  if (!token) return;
+  const btn = document.getElementById("teamBtn");
+  btn.disabled = true; btn.textContent = "Conectando...";
+  document.getElementById("setupError").style.display = "none";
+  clickupToken = token;
+  try {
+    const [folder, teamData, userData] = await Promise.all([
+      cu(`folder/${DOM_FOLDER_ID}`), cu("team"), cu("user"),
+    ]);
+    DOMLISTS = {};
+    for (const l of folder.lists || []) {
+      const key = listKeyFor(l.name);
+      if (key && !DOMLISTS[key]) DOMLISTS[key] = l.id;
+    }
+    const team = (teamData.teams || []).find(t => String(t.id) === TEAM_ID) || (teamData.teams || [])[0];
+    MEMBERS = (team?.members || []).map(m => ({id: m.user.id, name: m.user.username || m.user.email || ""})).filter(m => m.id);
+    ME = userData.user || null;
+    mode = "team";
+    localStorage.setItem("cu_token", token);
+    if (ME) { const hu = document.getElementById("headerUser"); hu.style.display = "flex"; hu.textContent = ME.username || ""; }
+    showApp();
+  } catch (e) {
+    clickupToken = "";
+    if (e.status === 401 || e.status === 403) localStorage.removeItem("cu_token");
+    showError(e.message);
+  }
+  btn.disabled = false; btn.textContent = "Conectar con token →";
 }
 
 function logout() {
-  localStorage.removeItem("cu_token");
-  clickupToken = "";
-  ME = null;
+  if (RO()) localStorage.removeItem("dom_code");
+  else localStorage.removeItem("cu_token");
+  mode = null; clickupToken = ""; accessCode = ""; personFilter = null;
   document.getElementById("appShell").style.display = "none";
   document.getElementById("setupCard").style.display = "block";
   document.getElementById("headerUser").style.display = "none";
   document.getElementById("statusDot").classList.add("off");
+  document.getElementById("codeInput").value = "";
   document.getElementById("tokenInput").value = "";
-}
-
-// --- Tabs ---
-function switchTab(tab) {
-  document.getElementById("tabChat").classList.toggle("active", tab === "chat");
-  document.getElementById("tabBoard").classList.toggle("active", tab === "board");
-  document.getElementById("chatCard").style.display = tab === "chat" ? "block" : "none";
-  document.getElementById("boardCard").style.display = tab === "board" ? "block" : "none";
-  if (tab === "board") loadBoard();
-}
-
-// --- Chat ---
-function addMsg(html) {
-  const msgs = document.getElementById("messages");
-  msgs.insertAdjacentHTML("beforeend", html);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function setLoading(on) {
-  document.getElementById("sendBtn").disabled = on;
-  document.getElementById("msgInput").disabled = on;
-  const tid = "typing-indicator";
-  if (on) addMsg(`<div class="typing" id="${tid}"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-label">Procesando...</span></div>`);
-  else document.getElementById(tid)?.remove();
-}
-
-async function sendMsg() {
-  const input = document.getElementById("msgInput");
-  const text  = input.value.trim();
-  if (!text) return;
-  input.value = "";
-  addMsg(`<div class="msg-user">${esc(text)}</div>`);
-  setLoading(true);
-
-  try {
-    const cr = await fetch("/api/chat", {
-      method: "POST",
-      headers: {"Content-Type":"application/json","X-ClickUp-Token":clickupToken},
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 500,
-        system: buildSystemPrompt(),
-        messages: [{role:"user", content:text}]
-      })
-    });
-    const cd = await cr.json().catch(() => ({}));
-    if (!cr.ok) throw new Error(cd.error?.message || "El asistente no está disponible. Intenta de nuevo.");
-    let raw = cd.content?.[0]?.text || "";
-    raw = raw.replace(/```json\n?/gi,"").replace(/```\n?/g,"").trim();
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) raw = jsonMatch[0];
-
-    let p;
-    try { p = JSON.parse(raw); }
-    catch { p = {confirmed:false, error:"No pude procesar la respuesta."}; }
-
-    if (!p.confirmed) {
-      setLoading(false);
-      addMsg(`<div class="msg-error">✕ ${esc(p.error || "No entendí. Especifica el cliente y la tarea.")}</div>`);
-      return;
-    }
-
-    const client = findClient(p.client_key);
-    if (!client) {
-      setLoading(false);
-      addMsg(`<div class="msg-error">✕ No reconocí el cliente "${esc(p.client_key)}".</div>`);
-      return;
-    }
-
-    const usedType = client.lists[p.list_type] ? p.list_type
-                   : (client.lists.admin ? "admin" : Object.keys(client.lists)[0]);
-    const listId   = client.lists[usedType];
-    const member   = p.assignee_id ? MEMBERS.find(m => String(m.id) === String(p.assignee_id)) : null;
-    const priority = PRIORITY_MAP[p.priority] || 3;
-    let dueTs = null;
-    if (p.due_date) {
-      const [y, mo, da] = p.due_date.split("-").map(Number);
-      if (y && mo && da) dueTs = new Date(y, mo - 1, da, 12).getTime(); // mediodía local: evita el corrimiento de día por UTC
-    }
-
-    const body = {name:p.task_name, description:p.description||"", priority};
-    if (member) body.assignees = [member.id];
-    if (dueTs) body.due_date = dueTs;
-
-    const cud = await cu(`list/${listId}/task`, "POST", body);
-    setLoading(false);
-
-    const link = cud.url ? `<a href="${cud.url}" target="_blank" class="task-link">Ver en ClickUp →</a>` : "";
-    addMsg(`<div class="msg-success">
-      <div class="success-header"><div class="success-dot">✓</div><span class="success-label">Tarea creada en ClickUp</span></div>
-      <p class="task-name">${esc(p.task_name)}</p>
-      <div class="task-meta">
-        <span class="meta-key">Cliente</span><span class="meta-val">${client.emoji} ${esc(client.name)}</span>
-        <span class="meta-key">Lista</span><span class="meta-val">${LIST_LABELS[usedType]||usedType}${usedType!==p.list_type?` <span style="color:#b9770e">(este cliente no tiene lista de ${esc(LIST_LABELS[p.list_type]||p.list_type)})</span>`:""}</span>
-        <span class="meta-key">Asignado</span><span class="meta-val">${member ? esc(member.name) : "Sin asignar"}</span>
-        <span class="meta-key">Prioridad</span><span class="meta-val">${esc(p.priority || "normal")}</span>
-        ${p.due_date?`<span class="meta-key">Fecha</span><span class="meta-val">${esc(p.due_date)}</span>`:""}
-      </div>${link}</div>`);
-
-  } catch(e) {
-    setLoading(false);
-    addMsg(`<div class="msg-error">✕ ${esc(e.message || "Error de conexión. Intenta de nuevo.")}</div>`);
-  }
 }
 
 // --- Tablero ---
@@ -722,19 +530,21 @@ function renderAreaChips() {
   spacer.className = "spacer";
   bar.appendChild(spacer);
 
-  const quick = document.createElement("button");
-  quick.className = "quick-btn";
-  quick.textContent = "+ Tarea rápida";
-  quick.onclick = openQuick;
-  bar.appendChild(quick);
+  if (!RO()) {
+    const quick = document.createElement("button");
+    quick.className = "quick-btn";
+    quick.textContent = "+ Tarea rápida";
+    quick.onclick = openQuick;
+    bar.appendChild(quick);
+  }
 
   const toggle = document.createElement("div");
   toggle.className = "mode-toggle";
-  for (const [mode, label] of [["persona","Por persona"],["fecha","Por fecha"]]) {
+  for (const [m, label] of [["persona","Por persona"],["fecha","Por fecha"]]) {
     const b = document.createElement("button");
     b.textContent = label;
-    b.className = boardMode === mode ? "active" : "";
-    b.onclick = () => { boardMode = mode; renderAreaChips(); renderBoard(); };
+    b.className = boardMode === m ? "active" : "";
+    b.onclick = () => { boardMode = m; renderAreaChips(); renderBoard(); };
     toggle.appendChild(b);
   }
   bar.appendChild(toggle);
@@ -747,7 +557,33 @@ function renderAreaChips() {
   bar.appendChild(refresh);
 }
 
-function dayStart(d) { const x = new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+async function loadBoard() {
+  const seq = ++boardLoadSeq;
+  const body = document.getElementById("boardBody");
+  document.getElementById("boardSummary").style.display = "none";
+  body.innerHTML = `<div class="board-loading">Cargando ${esc(LIST_LABELS[AREA])} de DOM...</div>`;
+  try {
+    let items = [];
+    if (RO()) {
+      const d = await domApi(`action=board&area=${AREA}`);
+      items = (d.tasks || []).map(t => ({task: t, listId: null}));
+    } else {
+      const listId = DOMLISTS[AREA];
+      if (listId) {
+        const d = await cu(`list/${listId}/task`);
+        items = (d.tasks || []).map(t => ({task: t, listId}));
+      }
+    }
+    if (seq !== boardLoadSeq) return;
+    boardTasks = items;
+    if (personFilter !== null && !filteredTasks().length) personFilter = null;
+    renderPersonBar();
+    renderBoard();
+  } catch (e) {
+    if (seq !== boardLoadSeq) return;
+    body.innerHTML = `<div class="board-empty" style="color:#b03030">✕ ${esc(e.message)}</div>`;
+  }
+}
 
 function renderPersonBar() {
   const bar = document.getElementById("personBar");
@@ -755,17 +591,15 @@ function renderPersonBar() {
   bar.style.display = "flex";
   bar.innerHTML = "";
   const today = dayStart(new Date());
-
-  const counts = new Map(); // key -> {who, n, late}
+  const counts = new Map();
   for (const it of boardTasks) {
     const a = (it.task.assignees || [])[0];
-    const key = a ? String(a.id) : "sin";
+    const key = a ? String(a.username || a.id) : "sin";
     if (!counts.has(key)) counts.set(key, {who: a, n: 0, late: 0});
     const c = counts.get(key);
     c.n++;
     if (it.task.due_date && dayStart(new Date(Number(it.task.due_date))) < today) c.late++;
   }
-
   const mkChip = (key, label, initials, n, late) => {
     const b = document.createElement("button");
     b.className = "person-chip" + ((personFilter === null && key === null) || String(personFilter) === String(key) ? " active" : "");
@@ -773,92 +607,64 @@ function renderPersonBar() {
     b.onclick = () => { personFilter = key; renderPersonBar(); renderBoard(); };
     bar.appendChild(b);
   };
-
   mkChip(null, "Todos", null, boardTasks.length, [...counts.values()].reduce((s, c) => s + c.late, 0));
   const people = [...counts.entries()].filter(([k]) => k !== "sin")
     .sort((a, b) => (a[1].who.username || "").localeCompare(b[1].who.username || ""));
   for (const [key, c] of people) {
-    const initials = (c.who.initials || c.who.username?.slice(0,2) || "?").toUpperCase();
+    const initials = (c.who.initials || (c.who.username || "?").slice(0,2)).toUpperCase();
     mkChip(key, (c.who.username || "").split(" ")[0], initials, c.n, c.late);
   }
-  if (counts.has("sin")) {
-    const c = counts.get("sin");
-    mkChip("sin", "Sin asignar", "—", c.n, c.late);
-  }
+  if (counts.has("sin")) mkChip("sin", "Sin asignar", "—", counts.get("sin").n, counts.get("sin").late);
 }
 
 function filteredTasks() {
   if (personFilter === null) return boardTasks;
   if (personFilter === "sin") return boardTasks.filter(it => !(it.task.assignees || []).length);
-  return boardTasks.filter(it => (it.task.assignees || [])[0] && String(it.task.assignees[0].id) === String(personFilter));
-}
-
-async function loadBoard() {
-  const seq = ++boardLoadSeq;
-  const body = document.getElementById("boardBody");
-  document.getElementById("boardSummary").style.display = "none";
-  body.innerHTML = `<div class="board-loading">Cargando ${esc(LIST_LABELS[AREA])} de todos los clientes...</div>`;
-
-  const sources = Object.values(CLIENTS)
-    .map(c => ({listId: c.lists[AREA], client: c}))
-    .filter(x => x.listId);
-
-  let failed = 0;
-  const results = await Promise.all(sources.map(async s => {
-    try {
-      const d = await cu(`list/${s.listId}/task`);
-      return (d.tasks || []).map(t => ({task: t, client: s.client, listId: s.listId}));
-    } catch { failed++; return []; }
-  }));
-
-  if (seq !== boardLoadSeq) return; // el usuario cambió de área mientras cargaba
-  boardTasks = results.flat();
-  boardFailed = failed;
-  boardSources = sources.length;
-  // si la persona filtrada ya no tiene tareas en esta área, volver a "Todos"
-  if (personFilter !== null && !filteredTasks().length) personFilter = null;
-  renderPersonBar();
-  renderBoard();
+  return boardTasks.filter(it => {
+    const a = (it.task.assignees || [])[0];
+    return a && String(a.username || a.id) === String(personFilter);
+  });
 }
 
 function dueInfo(t) {
-  if (!t.due_date) return {ts: null, cls: "nodate", label: "＋ Fecha"};
+  if (!t.due_date) return {ts: null, cls: RO() ? "" : "nodate", label: RO() ? "Sin fecha" : "＋ Fecha"};
   const ts = Number(t.due_date);
   const today = dayStart(new Date());
-  const tomorrow = today + 86400000;
   const due = dayStart(new Date(ts));
   const label = new Date(ts).toLocaleDateString("es-CO", {weekday:"short", day:"numeric", month:"short"});
   if (due < today) return {ts, cls: "late", label};
   if (due === today) return {ts, cls: "today", label: "Hoy"};
-  if (due === tomorrow) return {ts, cls: "", label: "Mañana"};
+  if (due === today + 86400000) return {ts, cls: "", label: "Mañana"};
   return {ts, cls: "", label};
 }
 
 function taskRow(item) {
-  const t = item.task, c = item.client;
+  const t = item.task;
   const info = dueInfo(t);
   const a = (t.assignees || [])[0];
-  const initials = a ? (a.initials || a.username?.slice(0,2) || "?") : null;
+  const initials = a ? (a.initials || (a.username || "?").slice(0,2)) : null;
   const dateVal = info.ts ? new Date(info.ts).toLocaleDateString("en-CA") : "";
+  const avatarStyle = a && a.color ? `style="background:${esc(a.color)}22;color:${esc(a.color)}"` : "";
+  const avatar = initials
+    ? `<div class="trow-assignee" ${RO() ? "" : `onclick="openAssign('${esc(t.id)}')" title="Cambiar responsable"`} ${avatarStyle} ${RO() ? 'style="cursor:default"' : ""}>${esc(initials.toUpperCase())}</div>`
+    : (RO() ? "" : `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>`);
+  const dateChip = RO()
+    ? `<span class="date-chip ${info.cls}" style="cursor:default">${info.label}</span>`
+    : `<label class="date-chip ${info.cls}" title="Fecha de entrega">${info.label}<input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/></label>`;
+  const actions = RO() ? "" :
+    `<button class="move-btn" title="Mover a otra área" onclick="openMove('${esc(t.id)}')">⇄</button>
+     <button class="done-btn" onclick="markDone('${esc(t.id)}', this)">✓ Listo</button>`;
   return `<div class="trow" id="trow-${esc(t.id)}">
     <div class="trow-status" style="background:${esc(t.status?.color || "#c3c7d0")}"></div>
     <div class="trow-main">
-      <a class="trow-name" href="#" onclick="event.preventDefault();openDetail('${esc(t.id)}')" title="Ver avances y comentarios">${esc(t.name)}</a>
+      <a class="trow-name" href="#" onclick="event.preventDefault();openDetail('${esc(t.id)}')" title="Ver avances">${esc(t.name)}</a>
       <div class="trow-sub">
-        <span class="trow-client">${c.emoji} ${esc(c.name)}</span>
+        <span class="trow-client">${CLIENT.emoji} DOM</span>
         <span>${esc(t.status?.status || "")}</span>
         ${a && boardMode !== "persona" ? `<span>· ${esc(a.username || "")}</span>` : ""}
       </div>
     </div>
-    ${initials
-      ? `<div class="trow-assignee" title="Cambiar responsable (${esc(a.username||"")})" onclick="openAssign('${esc(t.id)}')" ${a.color?`style="background:${esc(a.color)}22;color:${esc(a.color)}"`:""}>${esc(initials.toUpperCase())}</div>`
-      : `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>`}
-    <label class="date-chip ${info.cls}" title="${info.ts ? "Cambiar fecha de entrega" : "Asignar fecha de entrega"}">
-      ${info.label}
-      <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/>
-    </label>
-    <button class="move-btn" title="Mover a otra área" onclick="openMove('${esc(t.id)}')">⇄</button>
-    <button class="done-btn" onclick="markDone('${esc(t.id)}', '${esc(item.listId)}', this)">✓ Listo</button>
+    ${avatar}${dateChip}${actions}
   </div>`;
 }
 
@@ -874,7 +680,6 @@ function renderBoard() {
   const body = document.getElementById("boardBody");
   const summary = document.getElementById("boardSummary");
   const items = filteredTasks();
-
   const today = dayStart(new Date());
   const late = items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today);
   const forToday = items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) === today);
@@ -883,22 +688,17 @@ function renderBoard() {
   summary.innerHTML = `<span><b>${items.length}</b> abiertas</span>
     <span class="sum-late"><b>${late.length}</b> vencidas</span>
     <span class="sum-today"><b>${forToday.length}</b> para hoy</span>
-    <span class="sum-nodate"><b>${noDate.length}</b> sin fecha</span>
-    ${boardFailed ? `<span style="color:#b9770e">⚠ ${boardFailed} lista${boardFailed>1?"s":""} no cargaron</span>` : ""}`;
-
+    <span class="sum-nodate"><b>${noDate.length}</b> sin fecha</span>`;
   if (!items.length) {
-    body.innerHTML = boardFailed && boardFailed === boardSources
-      ? `<div class="board-empty" style="color:#b03030">✕ No se pudo cargar el tablero. Revisa tu conexión o vuelve a iniciar sesión.</div>`
-      : `<div class="board-empty">No hay tareas abiertas de ${esc(LIST_LABELS[AREA])}${personFilter !== null ? " para este filtro" : ""} 🎉</div>`;
+    body.innerHTML = `<div class="board-empty">No hay tareas abiertas de ${esc(LIST_LABELS[AREA])} 🎉</div>`;
     return;
   }
-
   let html = "";
   if (boardMode === "persona") {
     const groups = new Map();
     for (const item of items) {
       const a = (item.task.assignees || [])[0];
-      const key = a ? String(a.id) : "zz-sin";
+      const key = a ? String(a.username || a.id) : "zz-sin";
       if (!groups.has(key)) groups.set(key, {who: a, items: []});
       groups.get(key).items.push(item);
     }
@@ -908,7 +708,7 @@ function renderBoard() {
     });
     for (const g of sorted) {
       const lateCount = g.items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today).length;
-      const initials = g.who ? (g.who.initials || g.who.username?.slice(0,2) || "?") : "—";
+      const initials = g.who ? (g.who.initials || (g.who.username || "?").slice(0,2)) : "—";
       html += `<div class="group-header">
         <div class="group-avatar" ${g.who?.color?`style="background:${esc(g.who.color)}22;color:${esc(g.who.color)}"`:""}>${esc(String(initials).toUpperCase())}</div>
         <span class="group-title">${g.who ? esc(g.who.username || "") : "Sin asignar"}</span>
@@ -939,125 +739,8 @@ function renderBoard() {
   body.innerHTML = html;
 }
 
-async function doneStatusFor(listId) {
-  if (!doneStatusCache[listId]) {
-    const d = await cu(`list/${listId}`);
-    const s = (d.statuses || []).find(s => s.type === "closed" || s.type === "done");
-    doneStatusCache[listId] = s ? s.status : "complete";
-  }
-  return doneStatusCache[listId];
-}
-
-async function markDone(taskId, listId, btn) {
-  btn.disabled = true;
-  btn.textContent = "...";
-  try {
-    const status = await doneStatusFor(listId);
-    await cu(`task/${taskId}`, "PUT", {status});
-    const item = boardTasks.find(i => i.task.id === taskId);
-    boardTasks = boardTasks.filter(i => i.task.id !== taskId);
-    toast(`✓ Completada: ${item ? item.task.name : "tarea"}`);
-    const row = document.getElementById(`trow-${taskId}`);
-    if (row) { row.classList.add("removing"); setTimeout(() => { renderPersonBar(); renderBoard(); }, 300); }
-    else { renderPersonBar(); renderBoard(); }
-  } catch (e) {
-    btn.disabled = false;
-    btn.textContent = "✓ Listo";
-    toast("✕ No se pudo completar: " + e.message);
-  }
-}
-
-async function changeDate(taskId, dateStr) {
-  const item = boardTasks.find(i => i.task.id === taskId);
-  if (!item || !dateStr) return;
-  const [y, mo, da] = dateStr.split("-").map(Number);
-  const ts = new Date(y, mo - 1, da, 12).getTime();
-  const hadDate = !!item.task.due_date;
-  try {
-    await cu(`task/${taskId}`, "PUT", {due_date: ts, due_date_time: false});
-    item.task.due_date = String(ts);
-    toast(hadDate ? "📅 Fecha actualizada" : "📅 Fecha asignada");
-    renderBoard();
-  } catch (e) {
-    toast("✕ No se pudo cambiar la fecha: " + e.message);
-  }
-}
-
-// --- Tarea rápida ---
-function openQuick() {
-  const cSel = document.getElementById("qtClient");
-  cSel.innerHTML = Object.entries(CLIENTS)
-    .sort((a, b) => a[1].name.localeCompare(b[1].name))
-    .map(([key, c]) => `<option value="${esc(key)}">${c.emoji} ${esc(c.name)}</option>`).join("");
-
-  document.getElementById("qtArea").innerHTML = LIST_DEFS
-    .map(d => `<option value="${d.key}" ${d.key === AREA ? "selected" : ""}>${d.name}</option>`).join("");
-
-  const aSel = document.getElementById("qtAssignee");
-  aSel.innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
-    .slice().sort((a, b) => a.name.localeCompare(b.name))
-    .map(m => `<option value="${m.id}" ${personFilter !== null && String(personFilter) === String(m.id) ? "selected" : ""}>${esc(m.name)}</option>`).join("");
-
-  document.getElementById("qtName").value = "";
-  document.getElementById("qtDate").value = "";
-  document.getElementById("qtPriority").value = "normal";
-  document.getElementById("quickOverlay").style.display = "flex";
-  setTimeout(() => document.getElementById("qtName").focus(), 100);
-}
-
-function closeQuick() {
-  document.getElementById("quickOverlay").style.display = "none";
-}
-
-async function createQuickTask() {
-  const btn = document.getElementById("qtCreateBtn");
-  if (btn.disabled) return;
-  const name = document.getElementById("qtName").value.trim();
-  if (!name) { document.getElementById("qtName").focus(); return; }
-
-  const client = CLIENTS[document.getElementById("qtClient").value];
-  const areaKey = document.getElementById("qtArea").value;
-  if (!client) return;
-  const listId = client.lists[areaKey] || client.lists.admin || Object.values(client.lists)[0];
-  if (!listId) { toast("✕ Este cliente no tiene listas"); return; }
-
-  const assignee = document.getElementById("qtAssignee").value;
-  const dateStr = document.getElementById("qtDate").value;
-  const priority = PRIORITY_MAP[document.getElementById("qtPriority").value] || 3;
-
-  const body = {name, priority};
-  if (assignee) body.assignees = [Number(assignee)];
-  if (dateStr) {
-    const [y, mo, da] = dateStr.split("-").map(Number);
-    body.due_date = new Date(y, mo - 1, da, 12).getTime();
-    body.due_date_time = false;
-  }
-
-  btn.disabled = true;
-  btn.textContent = "Creando...";
-  try {
-    await cu(`list/${listId}/task`, "POST", body);
-    closeQuick();
-    toast(`✓ Tarea creada: ${client.emoji} ${client.name} · ${LIST_LABELS[areaKey]}`);
-    if (areaKey === AREA) loadBoard(); // refrescar si es el área visible
-  } catch (e) {
-    toast("✕ No se pudo crear: " + e.message);
-  }
-  btn.disabled = false;
-  btn.textContent = "Crear tarea →";
-}
-
-// --- Detalle de tarea: avances y comentarios ---
+// --- Detalle / avances ---
 let detailCtx = null;
-
-function linkify(s) {
-  // esc() primero: las URLs quedan como texto seguro y luego se convierten en <a>
-  return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
-}
-
-function fmtCommentDate(ms) {
-  return new Date(Number(ms)).toLocaleDateString("es-CO", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"});
-}
 
 async function openDetail(taskId) {
   const item = boardTasks.find(i => i.task.id === taskId);
@@ -1068,17 +751,20 @@ async function openDetail(taskId) {
   const info = dueInfo(t);
   const a = (t.assignees || [])[0];
   document.getElementById("dMeta").innerHTML = `
-    <span>${item.client.emoji} ${esc(item.client.name)}</span>
+    <span>${CLIENT.emoji} DOM</span>
     <span>${esc(LIST_LABELS[AREA] || "")}</span>
     <span>${esc(t.status?.status || "")}</span>
     <span>👤 ${a ? esc(a.username) : "Sin asignar"}</span>
     <span>📅 ${info.ts ? esc(info.label) : "Sin fecha"}</span>`;
-  const cl = document.getElementById("dClickupLink");
-  if (t.url && t.url.startsWith("https://")) { cl.href = t.url; cl.style.display = "block"; }
-  else cl.style.display = "none";
-  document.getElementById("dText").value = "";
-  document.getElementById("dDate").value = "";
-  document.getElementById("dLink").value = "";
+  document.getElementById("dForm").style.display = RO() ? "none" : "block";
+  document.getElementById("dCloseRO").style.display = RO() ? "flex" : "none";
+  if (!RO()) {
+    const cl = document.getElementById("dClickupLink");
+    if (t.url && t.url.startsWith("https://")) { cl.href = t.url; cl.style.display = "block"; } else cl.style.display = "none";
+    document.getElementById("dText").value = "";
+    document.getElementById("dDate").value = "";
+    document.getElementById("dLink").value = "";
+  }
   document.getElementById("dComments").innerHTML = `<div class="comments-empty">Cargando avances...</div>`;
   document.getElementById("detailOverlay").style.display = "flex";
   loadComments(taskId);
@@ -1086,20 +772,27 @@ async function openDetail(taskId) {
 
 async function loadComments(taskId) {
   try {
-    const d = await cu(`task/${taskId}/comment`);
-    if (detailCtx?.task.id !== taskId) return; // el usuario cerró o abrió otra tarea
-    const comments = (d.comments || []).slice().sort((a, b) => Number(a.date) - Number(b.date));
+    let comments;
+    if (RO()) {
+      const d = await domApi(`action=comments&task_id=${encodeURIComponent(taskId)}`);
+      comments = (d.comments || []).map(c => ({user: c.user, date: c.date, text: c.text}));
+    } else {
+      const d = await cu(`task/${taskId}/comment`);
+      comments = (d.comments || []).map(c => ({user: c.user?.username || "", date: c.date, text: c.comment_text || ""}))
+        .sort((a, b) => Number(a.date) - Number(b.date));
+    }
+    if (detailCtx?.task.id !== taskId) return;
     const box = document.getElementById("dComments");
     if (!comments.length) {
-      box.innerHTML = `<div class="comments-empty">Sin avances todavía — agrega el primero abajo.</div>`;
+      box.innerHTML = `<div class="comments-empty">Sin avances todavía.</div>`;
       return;
     }
     box.innerHTML = comments.map(c => `<div class="comment">
       <div class="comment-head">
-        <span class="comment-author">${esc(c.user?.username || "")}</span>
+        <span class="comment-author">${esc(c.user)}</span>
         <span class="comment-date">${fmtCommentDate(c.date)}</span>
       </div>
-      <div class="comment-text">${linkify(c.comment_text || "")}</div>
+      <div class="comment-text">${linkify(c.text)}</div>
     </div>`).join("");
     box.scrollTop = box.scrollHeight;
   } catch (e) {
@@ -1114,13 +807,12 @@ function closeDetail() {
 
 async function addComment() {
   const btn = document.getElementById("dAddBtn");
-  if (btn.disabled || !detailCtx) return;
+  if (btn.disabled || !detailCtx || RO()) return;
   const text = document.getElementById("dText").value.trim();
   const dateStr = document.getElementById("dDate").value;
   let link = document.getElementById("dLink").value.trim();
   if (!text && !link) { document.getElementById("dText").focus(); return; }
   if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;
-
   let fecha = "";
   if (dateStr) {
     const [y, mo, da] = dateStr.split("-").map(Number);
@@ -1130,9 +822,7 @@ async function addComment() {
   if (fecha) parts.push(`📅 Avance del ${fecha}`);
   if (text) parts.push(text);
   if (link) parts.push(`🔗 ${link}`);
-
-  btn.disabled = true;
-  btn.textContent = "Guardando...";
+  btn.disabled = true; btn.textContent = "Guardando...";
   try {
     await cu(`task/${detailCtx.task.id}/comment`, "POST", {comment_text: parts.join("\n"), notify_all: false});
     document.getElementById("dText").value = "";
@@ -1143,19 +833,62 @@ async function addComment() {
   } catch (e) {
     toast("✕ No se pudo guardar: " + e.message);
   }
-  btn.disabled = false;
-  btn.textContent = "Agregar avance →";
+  btn.disabled = false; btn.textContent = "Agregar avance →";
 }
 
-// --- Asignar / cambiar responsable ---
-let assignCtx = null;
+// --- Acciones de equipo ---
+async function doneStatusFor(listId) {
+  if (!doneStatusCache[listId]) {
+    const d = await cu(`list/${listId}`);
+    const s = (d.statuses || []).find(s => s.type === "closed" || s.type === "done");
+    doneStatusCache[listId] = s ? s.status : "complete";
+  }
+  return doneStatusCache[listId];
+}
 
+async function markDone(taskId, btn) {
+  if (RO()) return;
+  btn.disabled = true; btn.textContent = "...";
+  try {
+    const status = await doneStatusFor(DOMLISTS[AREA]);
+    await cu(`task/${taskId}`, "PUT", {status});
+    const item = boardTasks.find(i => i.task.id === taskId);
+    boardTasks = boardTasks.filter(i => i.task.id !== taskId);
+    toast(`✓ Completada: ${item ? item.task.name : "tarea"}`);
+    const row = document.getElementById(`trow-${taskId}`);
+    if (row) { row.classList.add("removing"); setTimeout(() => { renderPersonBar(); renderBoard(); }, 300); }
+    else { renderPersonBar(); renderBoard(); }
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "✓ Listo";
+    toast("✕ No se pudo completar: " + e.message);
+  }
+}
+
+async function changeDate(taskId, dateStr) {
+  if (RO()) return;
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item || !dateStr) return;
+  const [y, mo, da] = dateStr.split("-").map(Number);
+  const ts = new Date(y, mo - 1, da, 12).getTime();
+  try {
+    await cu(`task/${taskId}`, "PUT", {due_date: ts, due_date_time: false});
+    item.task.due_date = String(ts);
+    toast("📅 Fecha actualizada");
+    renderBoard();
+  } catch (e) {
+    toast("✕ No se pudo cambiar la fecha: " + e.message);
+  }
+}
+
+// Asignar responsable
+let assignCtx = null;
 function openAssign(taskId) {
+  if (RO()) return;
   const item = boardTasks.find(i => i.task.id === taskId);
   if (!item) return;
   assignCtx = item;
   const current = (item.task.assignees || [])[0];
-  document.getElementById("aTitle").textContent = `${item.client.emoji} ${item.client.name} · ${item.task.name}`;
+  document.getElementById("aTitle").textContent = `${CLIENT.emoji} DOM · ${item.task.name}`;
   const box = document.getElementById("aButtons");
   box.innerHTML = "";
   for (const m of MEMBERS.slice().sort((a, b) => a.name.localeCompare(b.name))) {
@@ -1176,12 +909,7 @@ function openAssign(taskId) {
   }
   document.getElementById("assignOverlay").style.display = "flex";
 }
-
-function closeAssign() {
-  document.getElementById("assignOverlay").style.display = "none";
-  assignCtx = null;
-}
-
+function closeAssign() { document.getElementById("assignOverlay").style.display = "none"; assignCtx = null; }
 async function doAssign(memberId, btn) {
   const item = assignCtx;
   if (!item || btn.disabled) return;
@@ -1191,34 +919,28 @@ async function doAssign(memberId, btn) {
     const currentIds = (item.task.assignees || []).map(a => a.id);
     const add = memberId ? [Number(memberId)] : [];
     const rem = currentIds.filter(id => !add.includes(Number(id)) && !add.includes(id));
-    // En update, assignees es un objeto {add, rem} (distinto al create, que es array)
     await cu(`task/${item.task.id}`, "PUT", {assignees: {add, rem}});
     const fresh = await cu(`task/${item.task.id}`);
     const idx = boardTasks.findIndex(i => i.task.id === item.task.id);
     if (idx >= 0) boardTasks[idx].task = fresh;
     const m = memberId ? MEMBERS.find(x => String(x.id) === String(memberId)) : null;
     toast(m ? `👤 Asignada a ${m.name}` : "👤 Responsable quitado");
-    closeAssign();
-    renderPersonBar();
-    renderBoard();
-  } catch (e) {
-    toast("✕ No se pudo asignar: " + e.message);
-    closeAssign();
-  }
+    closeAssign(); renderPersonBar(); renderBoard();
+  } catch (e) { toast("✕ No se pudo asignar: " + e.message); closeAssign(); }
 }
 
-// --- Mover tarea de área ---
+// Mover de área
 let moveCtx = null;
-
 function openMove(taskId) {
+  if (RO()) return;
   const item = boardTasks.find(i => i.task.id === taskId);
   if (!item) return;
   moveCtx = item;
-  document.getElementById("moveTaskName").textContent = `${item.client.emoji} ${item.client.name} · ${item.task.name}`;
+  document.getElementById("moveTaskName").textContent = `${CLIENT.emoji} DOM · ${item.task.name}`;
   const box = document.getElementById("moveButtons");
   box.innerHTML = "";
   for (const def of LIST_DEFS) {
-    if (def.key === AREA || !item.client.lists[def.key]) continue;
+    if (def.key === AREA || !DOMLISTS[def.key]) continue;
     const b = document.createElement("button");
     b.className = "move-area-btn";
     b.textContent = def.name;
@@ -1227,22 +949,14 @@ function openMove(taskId) {
   }
   document.getElementById("moveOverlay").style.display = "flex";
 }
-
-function closeMove() {
-  document.getElementById("moveOverlay").style.display = "none";
-  moveCtx = null;
-}
-
+function closeMove() { document.getElementById("moveOverlay").style.display = "none"; moveCtx = null; }
 async function doMove(targetKey, btn) {
   const item = moveCtx;
   if (!item || btn.disabled) return;
-  const targetList = item.client.lists[targetKey];
+  const targetList = DOMLISTS[targetKey];
   document.querySelectorAll(".move-area-btn").forEach(b => b.disabled = true);
   btn.textContent = "Moviendo...";
-
   try {
-    // La API de ClickUp no tiene "mover de lista": se copia la tarea completa
-    // y se borra la original. Comentarios y adjuntos no se pueden copiar.
     const t = await cu(`task/${item.task.id}`);
     const comments = await cu(`task/${item.task.id}/comment`).then(d => (d.comments || []).length).catch(() => 0);
     const attachments = (t.attachments || []).length;
@@ -1250,139 +964,85 @@ async function doMove(targetKey, btn) {
       const ok = confirm(`Esta tarea tiene ${comments} comentario(s) y ${attachments} adjunto(s) que NO se pueden mover — se perderían. ¿Mover de todas formas?`);
       if (!ok) { closeMove(); return; }
     }
-
     const body = {
-      name: t.name,
-      description: t.description || "",
+      name: t.name, description: t.description || "",
       assignees: (t.assignees || []).map(a => a.id),
       tags: (t.tags || []).map(x => x.name),
     };
     if (t.priority) body.priority = Number(t.priority.id) || 3;
     if (t.due_date) { body.due_date = Number(t.due_date); body.due_date_time = !!t.due_date_time; }
     if (t.start_date) body.start_date = Number(t.start_date);
-
     let created;
     try { created = await cu(`list/${targetList}/task`, "POST", {...body, status: t.status?.status}); }
-    catch { created = await cu(`list/${targetList}/task`, "POST", body); } // reintento sin status si el destino no lo tiene
-
+    catch { created = await cu(`list/${targetList}/task`, "POST", body); }
     try { await cu(`task/${item.task.id}`, "DELETE"); }
-    catch {
-      toast(`⚠ Copiada a ${LIST_LABELS[targetKey]}, pero no pude borrar la original — quedó duplicada`);
-      closeMove(); loadBoard(); return;
-    }
-
+    catch { toast(`⚠ Copiada a ${LIST_LABELS[targetKey]}, pero no pude borrar la original`); closeMove(); loadBoard(); return; }
     boardTasks = boardTasks.filter(i => i.task.id !== item.task.id);
-    toast(`⇄ Movida a ${LIST_LABELS[targetKey]}: ${t.name}`);
-    closeMove();
-    renderPersonBar();
-    renderBoard();
-  } catch (e) {
-    toast("✕ No se pudo mover: " + e.message);
-    closeMove();
+    toast(`⇄ Movida a ${LIST_LABELS[targetKey]}`);
+    closeMove(); renderPersonBar(); renderBoard();
+  } catch (e) { toast("✕ No se pudo mover: " + e.message); closeMove(); }
+}
+
+// Tarea rápida (DOM fijo)
+function openQuick() {
+  if (RO()) return;
+  document.getElementById("qtArea").innerHTML = LIST_DEFS
+    .map(d => `<option value="${d.key}" ${d.key === AREA ? "selected" : ""}>${d.name}</option>`).join("");
+  document.getElementById("qtAssignee").innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
+    .slice().sort((a, b) => a.name.localeCompare(b.name))
+    .map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+  document.getElementById("qtName").value = "";
+  document.getElementById("qtDate").value = "";
+  document.getElementById("qtPriority").value = "normal";
+  document.getElementById("quickOverlay").style.display = "flex";
+  setTimeout(() => document.getElementById("qtName").focus(), 100);
+}
+function closeQuick() { document.getElementById("quickOverlay").style.display = "none"; }
+async function createQuickTask() {
+  const btn = document.getElementById("qtCreateBtn");
+  if (btn.disabled || RO()) return;
+  const name = document.getElementById("qtName").value.trim();
+  if (!name) { document.getElementById("qtName").focus(); return; }
+  const areaKey = document.getElementById("qtArea").value;
+  const listId = DOMLISTS[areaKey];
+  if (!listId) { toast("✕ DOM no tiene esa lista"); return; }
+  const assignee = document.getElementById("qtAssignee").value;
+  const dateStr = document.getElementById("qtDate").value;
+  const priority = PRIORITY_MAP[document.getElementById("qtPriority").value] || 3;
+  const body = {name, priority};
+  if (assignee) body.assignees = [Number(assignee)];
+  if (dateStr) {
+    const [y, mo, da] = dateStr.split("-").map(Number);
+    body.due_date = new Date(y, mo - 1, da, 12).getTime();
+    body.due_date_time = false;
   }
-}
-
-// --- New Client Modal ---
-function openNewClient() {
-  const row = document.getElementById("emojiRow");
-  row.innerHTML = "";
-  EMOJIS.forEach(e => {
-    const d = document.createElement("div");
-    d.className = "emoji-opt" + (e === selectedEmoji ? " selected" : "");
-    d.textContent = e;
-    d.onclick = () => { selectedEmoji = e; document.querySelectorAll(".emoji-opt").forEach(x=>x.classList.remove("selected")); d.classList.add("selected"); };
-    row.appendChild(d);
-  });
-  document.getElementById("newClientName").value = "";
-  document.getElementById("modalOverlay").style.display = "flex";
-  setTimeout(() => document.getElementById("newClientName").focus(), 100);
-}
-
-function closeModal() {
-  document.getElementById("modalOverlay").style.display = "none";
-}
-
-async function createClient() {
-  const btn = document.getElementById("createBtn");
-  if (btn.disabled) return; // el Enter del input no debe disparar un segundo intento en paralelo
-  const name = document.getElementById("newClientName").value.trim();
-  if (!name) { document.getElementById("newClientName").focus(); return; }
-  btn.disabled = true;
-
+  btn.disabled = true; btn.textContent = "Creando...";
   try {
-    btn.textContent = "Creando carpeta...";
-    let folder, createdNew = false;
-    try {
-      folder = await cu(`space/${SPACE_ID}/folder`, "POST", {name: `${selectedEmoji} ${name}`});
-      createdNew = true;
-    } catch (e) {
-      if (!(e.ecode === "CAT_014" || /name taken/i.test(e.message))) throw e;
-      // La carpeta ya existe (p. ej. quedó a medias en un intento anterior): adoptarla y completar lo que falte
-      const d = await cu(`space/${SPACE_ID}/folder?archived=false`);
-      folder = (d.folders || []).find(f => splitEmoji(f.name).name.toLowerCase() === name.toLowerCase());
-      if (!folder) throw e;
-    }
-
-    const existing = new Set((folder.lists || []).map(l => listKeyFor(l.name)).filter(Boolean));
-    const missing = LIST_DEFS.filter(def => !existing.has(def.key));
-    let createdCount = 0;
-    try {
-      for (let i = 0; i < missing.length; i++) {
-        btn.textContent = `Creando lista ${i + 1}/${missing.length}...`;
-        await cu(`folder/${folder.id}/list`, "POST", {name: missing[i].name});
-        createdCount++;
-      }
-    } catch (e) {
-      // Si el plan bloqueó la primera lista de una carpeta recién creada, no dejar la carpeta vacía huérfana
-      if (createdNew && createdCount === 0 && !(folder.lists || []).length) {
-        try { await cu(`folder/${folder.id}`, "DELETE"); } catch {}
-      }
-      throw e;
-    }
-
-    btn.textContent = "Sincronizando...";
-    let synced = true;
-    try { await loadWorkspace(); } catch { synced = false; }
-
-    closeModal();
-    if (synced && !CLIENTS[name.toLowerCase()]) {
-      toast("⚠ Cliente creado en ClickUp pero oculto en la app (nombres con 'Desactivado' no se muestran)");
-    } else {
-      toast(`✦ Cliente creado: ${selectedEmoji} ${name} (carpeta + ${LIST_DEFS.length} listas)`);
-      if (document.getElementById("boardCard").style.display !== "none") loadBoard();
-    }
-
-  } catch(e) {
-    let hint = "";
-    if (e.ecode === "HLIMIT_005" || /list limit/i.test(e.message)) hint = " El plan de ClickUp llegó al tope de 100 listas en el Space — archiva las listas de clientes inactivos (o mejora el plan) y vuelve a intentar.";
-    else if (e.status === 403 || /OAUTH|ACCESS/i.test(e.ecode || "")) hint = " Tu usuario no tiene permiso para crear carpetas (los invitados no pueden) — pídele a un admin.";
-    else if (e.ecode === "CAT_014" || /name taken/i.test(e.message)) hint = " Ya existe una carpeta con un nombre parecido en ClickUp.";
-    toast(`✕ Error creando el cliente: ${e.message}.${hint}`);
-  }
-
-  btn.disabled = false;
-  btn.textContent = "Crear cliente en ClickUp →";
+    await cu(`list/${listId}/task`, "POST", body);
+    closeQuick();
+    toast(`✓ Tarea creada en ${LIST_LABELS[areaKey]}`);
+    if (areaKey === AREA) loadBoard();
+  } catch (e) { toast("✕ No se pudo crear: " + e.message); }
+  btn.disabled = false; btn.textContent = "Crear tarea →";
 }
 
-document.getElementById("tokenInput").addEventListener("keydown", e => { if(e.key==="Enter") saveToken(); });
-
-// --- Arranque: token del hash (OAuth), error de OAuth, o token guardado ---
+// --- Arranque ---
 (function init() {
   const hash = new URLSearchParams(window.location.hash.slice(1));
   if (hash.get("cu_token")) {
     history.replaceState(null, "", window.location.pathname);
-    connect(hash.get("cu_token"));
+    enterTeam(hash.get("cu_token"));
     return;
   }
-  if (hash.get("auth_error")) {
-    history.replaceState(null, "", window.location.pathname);
-    const errBox = document.getElementById("setupError");
-    errBox.textContent = "✕ " + hash.get("auth_error");
-    errBox.style.display = "block";
-    return;
+  const storedToken = localStorage.getItem("cu_token");
+  if (storedToken) { enterTeam(storedToken); return; }
+  const storedCode = localStorage.getItem("dom_code");
+  if (storedCode) {
+    document.getElementById("codeInput").value = storedCode;
+    accessCode = storedCode;
+    domApi(`action=board&area=${AREA}`).then(() => { mode = "client"; showApp(); })
+      .catch(() => { localStorage.removeItem("dom_code"); accessCode = ""; });
   }
-  const stored = localStorage.getItem("cu_token");
-  if (stored) connect(stored);
 })();
 </script>
 </body>

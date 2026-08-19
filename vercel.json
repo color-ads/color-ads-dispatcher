@@ -1,5 +1,9 @@
 {
   "crons": [
-    { "path": "/api/digest", "schedule": "0 17 * * *" }
-  ]
+    {
+      "path": "/api/digest",
+      "schedule": "0 17 * * *"
+    }
+  ],
+  "cleanUrls": true
 }
