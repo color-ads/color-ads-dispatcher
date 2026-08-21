@@ -257,6 +257,8 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <input type="password" id="codeInput" placeholder="Tu código" autocomplete="off" onkeydown="if(event.key==='Enter')enterClient()"/>
       <label style="display:block;font-size:12.5px;font-weight:600;color:#555c6e;margin-bottom:5px;margin-top:12px">Tu nombre <span style="font-weight:400;color:#a5aab6">(para firmar tus avances)</span></label>
       <input type="text" id="nameInput" placeholder="Ej: Andrés" autocomplete="off" onkeydown="if(event.key==='Enter')enterClient()"/>
+      <label style="display:block;font-size:12.5px;font-weight:600;color:#555c6e;margin-bottom:5px;margin-top:12px">Tu correo <span style="font-weight:400;color:#a5aab6">(opcional — recordatorio diario de tareas)</span></label>
+      <input type="text" id="emailInput" placeholder="tucorreo@dom.com" autocomplete="off" onkeydown="if(event.key==='Enter')enterClient()"/>
       <button class="btn btn-primary" id="clientBtn" onclick="enterClient()">Entrar →</button>
       <div class="setup-error" id="setupError"></div>
       <button class="manual-toggle" onclick="toggleTeam()">¿Eres del equipo Color Ads?</button>
@@ -277,6 +279,15 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <span id="editBadge" style="display:none;padding:7px 13px;background:#e8f7ee;border:1px solid #bfe8cd;border-radius:10px;color:#178040;font-size:12px;font-weight:600">✏️ Edición DOM</span>
       <div class="tab-right">
         <button class="token-btn" onclick="logout()">Salir</button>
+      </div>
+    </div>
+
+    <div class="card" id="digestBanner" style="display:none;margin-bottom:12px;padding:12px 16px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:13.5px;color:#3d4354;flex:1;min-width:200px">📬 <b>¿Quieres el recordatorio diario de DOM?</b> Deja tu correo y cada mañana te llegan las tareas vencidas y del día.</span>
+        <input type="text" id="bannerEmail" placeholder="tucorreo@dom.com" style="flex:1;min-width:180px;max-width:260px"/>
+        <button class="quick-btn" onclick="subscribeFromBanner()">Suscribirme</button>
+        <button class="token-btn" onclick="dismissBanner()">Ahora no</button>
       </div>
     </div>
 
@@ -508,6 +519,29 @@ function showApp() {
   }
   renderAreaChips();
   loadBoard();
+  document.getElementById("digestBanner").style.display =
+    (mode === "client" && !localStorage.getItem("dom_email") && !localStorage.getItem("dom_email_no")) ? "block" : "none";
+}
+
+async function subscribeEmail(email) {
+  const em = String(email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { toast("✕ Ese correo no se ve válido"); return false; }
+  try {
+    await domApi("action=subscribe", {email: em, who});
+    localStorage.setItem("dom_email", em);
+    toast("📬 Listo — cada mañana te llegará el recordatorio de DOM");
+    document.getElementById("digestBanner").style.display = "none";
+    return true;
+  } catch (e) { toast("✕ No se pudo suscribir: " + e.message); return false; }
+}
+
+function subscribeFromBanner() {
+  subscribeEmail(document.getElementById("bannerEmail").value);
+}
+
+function dismissBanner() {
+  localStorage.setItem("dom_email_no", "1");
+  document.getElementById("digestBanner").style.display = "none";
 }
 
 async function enterClient() {
@@ -526,6 +560,8 @@ async function enterClient() {
     localStorage.setItem("dom_code", code);
     if (who) localStorage.setItem("dom_name", who);
     showApp();
+    const em = document.getElementById("emailInput").value.trim();
+    if (em) subscribeEmail(em);
   } catch (e) {
     accessCode = "";
     if (e.status === 401) localStorage.removeItem("dom_code");
