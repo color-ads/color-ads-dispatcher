@@ -855,7 +855,7 @@ function taskRow(item) {
       : `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>`}
     <label class="date-chip ${info.cls}" title="${info.ts ? "Cambiar fecha de entrega" : "Asignar fecha de entrega"}">
       ${info.label}
-      <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/>
+      <input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)" onclick="if(this.showPicker){event.preventDefault();try{this.showPicker()}catch(e){this.focus()}}"/>
     </label>
     <button class="move-btn" title="Mover a otra área" onclick="openMove('${esc(t.id)}')">⇄</button>
     <button class="done-btn" onclick="markDone('${esc(t.id)}', '${esc(item.listId)}', this)">✓ Listo</button>
