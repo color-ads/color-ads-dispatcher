@@ -53,6 +53,7 @@ module.exports = async (req, res) => {
           area: k,
           status: { status: t.status?.status || "", color: t.status?.color || "#c3c7d0" },
           due_date: t.due_date || null,
+          priority: t.priority ? Number(t.priority.id) || 3 : 3,
           assignees: (t.assignees || []).map((a) => ({ username: a.username || "", initials: a.initials || "", color: a.color || "" })),
         }));
       }));
