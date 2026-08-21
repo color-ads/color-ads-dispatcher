@@ -12,6 +12,7 @@ const parseSubs = (raw) => {
 };
 
 const SPACE_ID = "90130971239";
+const TEAM_ID = "9013231845";
 const PROJECT_PREFIX = "dom:";
 
 function listKeyFor(listName) {
@@ -101,14 +102,18 @@ module.exports = async (req, res) => {
         const lists = await domLists();
         const area = req.query.area;
         const keys = area === "all" ? Object.keys(lists) : (lists[area] ? [area] : []);
-        const [perList, projects] = await Promise.all([
+        const [perList, projects, members] = await Promise.all([
           Promise.all(keys.map(async (k) => {
             const d = await cu(`list/${lists[k]}/task`);
             return (d.tasks || []).map((t) => trimTask(t, k));
           })),
           spaceProjects(),
+          role === "edit" ? cu("team").then((td) => {
+            const team = (td.teams || []).find((x) => String(x.id) === TEAM_ID) || (td.teams || [])[0];
+            return (team?.members || []).map((m) => ({ id: m.user.id, name: m.user.username || "" })).filter((m) => m.id && m.name);
+          }) : Promise.resolve(undefined),
         ]);
-        return res.status(200).json({ role, areas: Object.keys(lists), projects, tasks: perList.flat() });
+        return res.status(200).json({ role, areas: Object.keys(lists), projects, tasks: perList.flat(), ...(members ? { members } : {}) });
       }
 
       if (action === "comments") {
@@ -160,6 +165,12 @@ module.exports = async (req, res) => {
         const slug = slugify(b.project);
         if (slug) body.tags = [PROJECT_PREFIX + slug];
       }
+      if (b.assignee) {
+        const td = await cu("team");
+        const team = (td.teams || []).find((x) => String(x.id) === TEAM_ID) || (td.teams || [])[0];
+        const ids = (team?.members || []).map((m) => Number(m.user.id));
+        if (ids.includes(Number(b.assignee))) body.assignees = [Number(b.assignee)];
+      }
       const t = await cu(`list/${listId}/task`, "POST", body);
       return res.status(200).json({ ok: true, id: t.id });
     }
@@ -196,6 +207,21 @@ module.exports = async (req, res) => {
         const slug = slugify(b.project);
         if (slug) await cu(`task/${t.id}/tag/${encodeURIComponent(PROJECT_PREFIX + slug)}`, "POST");
       }
+      return res.status(200).json({ ok: true });
+    }
+
+    if (action === "set_assignee") {
+      const t = await assertTaskInDom(b.task_id);
+      const add = [];
+      if (b.member_id) {
+        const td = await cu("team");
+        const team = (td.teams || []).find((x) => String(x.id) === TEAM_ID) || (td.teams || [])[0];
+        const ids = (team?.members || []).map((m) => Number(m.user.id));
+        if (!ids.includes(Number(b.member_id))) return res.status(400).json({ err: "Responsable inválido" });
+        add.push(Number(b.member_id));
+      }
+      const rem = (t.assignees || []).map((a) => Number(a.id)).filter((id) => !add.includes(id));
+      await cu(`task/${t.id}`, "PUT", { assignees: { add, rem } });
       return res.status(200).json({ ok: true });
     }
 
