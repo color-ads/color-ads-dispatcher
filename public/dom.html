@@ -387,6 +387,8 @@ const LIST_DEFS = [
   {key:"desweb",     name:"💻 Desarrollo Web",       chip:"💻 Web"},
 ];
 const LIST_LABELS = Object.fromEntries(LIST_DEFS.map(d => [d.key, d.name.replace(/^\S+\s/, "")]));
+LIST_LABELS.all = "todas las áreas";
+const AREA_CHIP = Object.fromEntries(LIST_DEFS.map(d => [d.key, d.chip]));
 const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
 
 let mode = null;            // "team" | "client"
@@ -395,7 +397,7 @@ let accessCode = "";
 let DOMLISTS = {};          // key → list id (solo modo equipo)
 let MEMBERS = [];
 let ME = null;
-let AREA = "disenio";
+let AREA = "all";
 let boardMode = "persona";
 let personFilter = null;
 let boardTasks = [];
@@ -519,7 +521,7 @@ function logout() {
 function renderAreaChips() {
   const bar = document.getElementById("areaChips");
   bar.innerHTML = "";
-  for (const def of LIST_DEFS) {
+  for (const def of [{key:"all", chip:"🗂 Todas"}, ...LIST_DEFS]) {
     const b = document.createElement("button");
     b.className = "area-chip" + (def.key === AREA ? " active" : "");
     b.textContent = def.chip;
@@ -566,13 +568,17 @@ async function loadBoard() {
     let items = [];
     if (RO()) {
       const d = await domApi(`action=board&area=${AREA}`);
-      items = (d.tasks || []).map(t => ({task: t, listId: null}));
+      items = (d.tasks || []).map(t => ({task: t, listId: null, area: t.area}));
     } else {
-      const listId = DOMLISTS[AREA];
-      if (listId) {
-        const d = await cu(`list/${listId}/task`);
-        items = (d.tasks || []).map(t => ({task: t, listId}));
-      }
+      const entries = AREA === "all" ? Object.entries(DOMLISTS)
+                    : (DOMLISTS[AREA] ? [[AREA, DOMLISTS[AREA]]] : []);
+      const perList = await Promise.all(entries.map(async ([key, listId]) => {
+        try {
+          const d = await cu(`list/${listId}/task`);
+          return (d.tasks || []).map(t => ({task: t, listId, area: key}));
+        } catch { return []; }
+      }));
+      items = perList.flat();
     }
     if (seq !== boardLoadSeq) return;
     boardTasks = items;
@@ -659,7 +665,7 @@ function taskRow(item) {
     <div class="trow-main">
       <a class="trow-name" href="#" onclick="event.preventDefault();openDetail('${esc(t.id)}')" title="Ver avances">${esc(t.name)}</a>
       <div class="trow-sub">
-        <span class="trow-client">${CLIENT.emoji} DOM</span>
+        <span class="trow-client">${esc(AREA_CHIP[item.area] || CLIENT.emoji + " DOM")}</span>
         <span>${esc(t.status?.status || "")}</span>
         ${a && boardMode !== "persona" ? `<span>· ${esc(a.username || "")}</span>` : ""}
       </div>
@@ -752,7 +758,7 @@ async function openDetail(taskId) {
   const a = (t.assignees || [])[0];
   document.getElementById("dMeta").innerHTML = `
     <span>${CLIENT.emoji} DOM</span>
-    <span>${esc(LIST_LABELS[AREA] || "")}</span>
+    <span>${esc(LIST_LABELS[detailCtx.area] || LIST_LABELS[AREA] || "")}</span>
     <span>${esc(t.status?.status || "")}</span>
     <span>👤 ${a ? esc(a.username) : "Sin asignar"}</span>
     <span>📅 ${info.ts ? esc(info.label) : "Sin fecha"}</span>`;
@@ -848,9 +854,11 @@ async function doneStatusFor(listId) {
 
 async function markDone(taskId, btn) {
   if (RO()) return;
+  const _item = boardTasks.find(i => i.task.id === taskId);
+  if (!_item || !_item.listId) return;
   btn.disabled = true; btn.textContent = "...";
   try {
-    const status = await doneStatusFor(DOMLISTS[AREA]);
+    const status = await doneStatusFor(_item.listId);
     await cu(`task/${taskId}`, "PUT", {status});
     const item = boardTasks.find(i => i.task.id === taskId);
     boardTasks = boardTasks.filter(i => i.task.id !== taskId);
@@ -940,7 +948,7 @@ function openMove(taskId) {
   const box = document.getElementById("moveButtons");
   box.innerHTML = "";
   for (const def of LIST_DEFS) {
-    if (def.key === AREA || !DOMLISTS[def.key]) continue;
+    if (def.key === item.area || !DOMLISTS[def.key]) continue;
     const b = document.createElement("button");
     b.className = "move-area-btn";
     b.textContent = def.name;
@@ -977,17 +985,17 @@ async function doMove(targetKey, btn) {
     catch { created = await cu(`list/${targetList}/task`, "POST", body); }
     try { await cu(`task/${item.task.id}`, "DELETE"); }
     catch { toast(`⚠ Copiada a ${LIST_LABELS[targetKey]}, pero no pude borrar la original`); closeMove(); loadBoard(); return; }
-    boardTasks = boardTasks.filter(i => i.task.id !== item.task.id);
     toast(`⇄ Movida a ${LIST_LABELS[targetKey]}`);
-    closeMove(); renderPersonBar(); renderBoard();
+    closeMove(); loadBoard();
   } catch (e) { toast("✕ No se pudo mover: " + e.message); closeMove(); }
 }
 
 // Tarea rápida (DOM fijo)
 function openQuick() {
   if (RO()) return;
+  const defArea = AREA === "all" ? "disenio" : AREA;
   document.getElementById("qtArea").innerHTML = LIST_DEFS
-    .map(d => `<option value="${d.key}" ${d.key === AREA ? "selected" : ""}>${d.name}</option>`).join("");
+    .map(d => `<option value="${d.key}" ${d.key === defArea ? "selected" : ""}>${d.name}</option>`).join("");
   document.getElementById("qtAssignee").innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
     .slice().sort((a, b) => a.name.localeCompare(b.name))
     .map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
@@ -1021,7 +1029,7 @@ async function createQuickTask() {
     await cu(`list/${listId}/task`, "POST", body);
     closeQuick();
     toast(`✓ Tarea creada en ${LIST_LABELS[areaKey]}`);
-    if (areaKey === AREA) loadBoard();
+    if (areaKey === AREA || AREA === "all") loadBoard();
   } catch (e) { toast("✕ No se pudo crear: " + e.message); }
   btn.disabled = false; btn.textContent = "Crear tarea →";
 }
