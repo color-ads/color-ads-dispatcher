@@ -557,6 +557,7 @@ async function enterClient() {
     mode = "client";
     clientRole = d.role || "view";
     PROJECTS = d.projects || [];
+    if (d.members) MEMBERS = d.members;
     localStorage.setItem("dom_code", code);
     if (who) localStorage.setItem("dom_name", who);
     showApp();
@@ -700,6 +701,7 @@ async function loadBoard() {
     if (mode === "client") {
       const d = await domApi(`action=board&area=${AREA}`);
       PROJECTS = d.projects || PROJECTS;
+      if (d.members) MEMBERS = d.members;
       items = (d.tasks || []).map(t => ({task: t, listId: null, area: t.area}));
     } else {
       const entries = AREA === "all" ? Object.entries(DOMLISTS)
@@ -788,8 +790,8 @@ function taskRow(item) {
   const dateVal = info.ts ? new Date(info.ts).toLocaleDateString("en-CA") : "";
   const avatarStyle = a && a.color ? `style="background:${esc(a.color)}22;color:${esc(a.color)}"` : "";
   const avatar = initials
-    ? `<div class="trow-assignee" ${isTeam() ? `onclick="openAssign('${esc(t.id)}')" title="Cambiar responsable"` : 'style="cursor:default"'} ${avatarStyle}>${esc(initials.toUpperCase())}</div>`
-    : (isTeam() ? `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>` : "");
+    ? `<div class="trow-assignee" ${canEdit() ? `onclick="openAssign('${esc(t.id)}')" title="Cambiar responsable"` : 'style="cursor:default"'} ${avatarStyle}>${esc(initials.toUpperCase())}</div>`
+    : (canEdit() ? `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>` : "");
   const dateChip = canEdit()
     ? `<label class="date-chip ${info.cls}" title="Fecha de entrega">${info.label}<input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)" onclick="if(this.showPicker){event.preventDefault();try{this.showPicker()}catch(e){this.focus()}}"/></label>`
     : `<span class="date-chip ${info.cls}" style="cursor:default">${info.label}</span>`;
@@ -1166,7 +1168,7 @@ async function createProject() {
 // --- Asignar responsable (solo equipo CA) ---
 let assignCtx = null;
 function openAssign(taskId) {
-  if (!isTeam()) return;
+  if (!canEdit()) return;
   const item = boardTasks.find(i => i.task.id === taskId);
   if (!item) return;
   assignCtx = item;
@@ -1176,7 +1178,7 @@ function openAssign(taskId) {
   box.innerHTML = "";
   for (const m of MEMBERS.slice().sort((a, b) => a.name.localeCompare(b.name))) {
     const b = document.createElement("button");
-    const isCurrent = current && String(current.id) === String(m.id);
+    const isCurrent = current && (String(current.id) === String(m.id) || current.username === m.name);
     b.className = "move-area-btn" + (isCurrent ? " assign-btn-current" : "");
     b.innerHTML = `<span class="pc-avatar">${esc(m.name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase())}</span> ${esc(m.name)}${isCurrent ? " · actual" : ""}`;
     b.onclick = () => doAssign(m.id, b);
@@ -1198,15 +1200,20 @@ async function doAssign(memberId, btn) {
   if (!item || btn.disabled) return;
   document.querySelectorAll("#aButtons .move-area-btn").forEach(b => b.disabled = true);
   btn.textContent = "Guardando...";
+  const m = memberId ? MEMBERS.find(x => String(x.id) === String(memberId)) : null;
   try {
-    const currentIds = (item.task.assignees || []).map(a => a.id);
-    const add = memberId ? [Number(memberId)] : [];
-    const rem = currentIds.filter(id => !add.includes(Number(id)) && !add.includes(id));
-    await cu(`task/${item.task.id}`, "PUT", {assignees: {add, rem}});
-    const fresh = await cu(`task/${item.task.id}`);
-    const idx = boardTasks.findIndex(i => i.task.id === item.task.id);
-    if (idx >= 0) boardTasks[idx].task = fresh;
-    const m = memberId ? MEMBERS.find(x => String(x.id) === String(memberId)) : null;
+    if (isTeam()) {
+      const currentIds = (item.task.assignees || []).map(a => a.id);
+      const add = memberId ? [Number(memberId)] : [];
+      const rem = currentIds.filter(id => !add.includes(Number(id)) && !add.includes(id));
+      await cu(`task/${item.task.id}`, "PUT", {assignees: {add, rem}});
+      const fresh = await cu(`task/${item.task.id}`);
+      const idx = boardTasks.findIndex(i => i.task.id === item.task.id);
+      if (idx >= 0) boardTasks[idx].task = fresh;
+    } else {
+      await domApi("action=set_assignee", {task_id: item.task.id, member_id: memberId || null});
+      item.task.assignees = m ? [{id: m.id, username: m.name, initials: m.name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase(), color: ""}] : [];
+    }
     toast(m ? `👤 Asignada a ${m.name}` : "👤 Responsable quitado");
     closeAssign(); renderPersonBar(); renderBoard();
   } catch (e) { toast("✕ No se pudo asignar: " + e.message); closeAssign(); }
@@ -1274,7 +1281,7 @@ function openQuick() {
   document.getElementById("qtProject").innerHTML = `<option value="">Sin proyecto</option>` +
     PROJECTS.map(p => `<option value="${esc(p)}" ${projectFilter === p ? "selected" : ""}>${esc(projName(p))}</option>`).join("");
   const aw = document.getElementById("qtAssigneeWrap");
-  if (isTeam()) {
+  if (MEMBERS.length) {
     aw.style.display = "block";
     document.getElementById("qtAssignee").innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
       .slice().sort((a, b) => a.name.localeCompare(b.name))
@@ -1313,7 +1320,8 @@ async function createQuickTask() {
       if (assignee) body.assignees = [Number(assignee)];
       await cu(`list/${listId}/task`, "POST", body);
     } else {
-      await domApi("action=create_task", {area: areaKey, name, priority, due_date: due, project, who});
+      const assignee = document.getElementById("qtAssignee").value || null;
+      await domApi("action=create_task", {area: areaKey, name, priority, due_date: due, project, who, assignee});
     }
     closeQuick();
     toast(`✓ Tarea creada en ${LIST_LABELS[areaKey]}`);
@@ -1339,7 +1347,7 @@ async function createQuickTask() {
     document.getElementById("codeInput").value = storedCode;
     accessCode = storedCode;
     who = storedName || "";
-    domApi(`action=board&area=all`).then(d => { mode = "client"; clientRole = d.role || "view"; PROJECTS = d.projects || []; showApp(); })
+    domApi(`action=board&area=all`).then(d => { mode = "client"; clientRole = d.role || "view"; PROJECTS = d.projects || []; if (d.members) MEMBERS = d.members; showApp(); })
       .catch(() => { localStorage.removeItem("dom_code"); accessCode = ""; });
   }
 })();
