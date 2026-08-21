@@ -656,7 +656,7 @@ function taskRow(item) {
     : (RO() ? "" : `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>`);
   const dateChip = RO()
     ? `<span class="date-chip ${info.cls}" style="cursor:default">${info.label}</span>`
-    : `<label class="date-chip ${info.cls}" title="Fecha de entrega">${info.label}<input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)"/></label>`;
+    : `<label class="date-chip ${info.cls}" title="Fecha de entrega">${info.label}<input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)" onclick="if(this.showPicker){event.preventDefault();try{this.showPicker()}catch(e){this.focus()}}"/></label>`;
   const actions = RO() ? "" :
     `<button class="move-btn" title="Mover a otra área" onclick="openMove('${esc(t.id)}')">⇄</button>
      <button class="done-btn" onclick="markDone('${esc(t.id)}', this)">✓ Listo</button>`;
