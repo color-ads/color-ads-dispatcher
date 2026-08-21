@@ -3,6 +3,14 @@
 // Todas las llamadas salen con el token del servidor (CLICKUP_TOKEN) y CADA
 // operación valida que el recurso pertenezca a DOM antes de tocarlo.
 const DOM_FOLDER_ID = "901318180640";
+const SUBS_TASK_ID = "wdv5t9datm"; // tarea-almacén de suscriptores (carpeta Operaciones)
+const SUBS_PREFIX = "Suscriptores (gestionado por el app):\n";
+const parseSubs = (raw) => {
+  const s = String(raw || "");
+  const body = s.includes("\n") ? s.slice(s.indexOf("\n") + 1) : s;
+  try { const a = JSON.parse(body); return Array.isArray(a) ? a : []; } catch { return []; }
+};
+
 const SPACE_ID = "90130971239";
 const PROJECT_PREFIX = "dom:";
 
@@ -117,9 +125,24 @@ module.exports = async (req, res) => {
 
     // ================= ESCRITURA (solo rol edición) =================
     if (req.method !== "POST") return res.status(405).json({ err: "Método no permitido" });
-    if (role !== "edit") return res.status(403).json({ err: "Tu código es de solo lectura" });
     const action = req.query.action;
     const b = req.body || {};
+
+    // Suscripción al recordatorio diario — permitida con cualquier código válido
+    if (action === "subscribe") {
+      const email = String(b.email || "").trim().toLowerCase().slice(0, 100);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return res.status(400).json({ err: "Correo inválido" });
+      const t = await cu(`task/${SUBS_TASK_ID}`);
+      const subs = parseSubs(t.description || t.text_content);
+      if (!subs.some((x) => x.email === email)) {
+        subs.push({ email, who: cleanWho(b.who), since: new Date().toISOString().slice(0, 10) });
+        // ClickUp se traga descripciones que EMPIEZAN con "[" — el prefijo de texto lo evita
+        await cu(`task/${SUBS_TASK_ID}`, "PUT", { description: SUBS_PREFIX + JSON.stringify(subs) });
+      }
+      return res.status(200).json({ ok: true });
+    }
+
+    if (role !== "edit") return res.status(403).json({ err: "Tu código es de solo lectura" });
 
     if (action === "create_task") {
       const lists = await domLists();
