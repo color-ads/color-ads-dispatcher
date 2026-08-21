@@ -43,17 +43,20 @@ module.exports = async (req, res) => {
         if (key && !lists[key]) lists[key] = l.id;
       }
       const area = req.query.area;
-      if (!lists[area]) return res.status(200).json({ areas: Object.keys(lists), tasks: [] });
-      const d = await cu(`list/${lists[area]}/task`);
-      // Solo los campos que el cliente necesita ver — sin URLs internas ni correos
-      const tasks = (d.tasks || []).map((t) => ({
-        id: t.id,
-        name: t.name,
-        status: { status: t.status?.status || "", color: t.status?.color || "#c3c7d0" },
-        due_date: t.due_date || null,
-        assignees: (t.assignees || []).map((a) => ({ username: a.username || "", initials: a.initials || "", color: a.color || "" })),
+      const keys = area === "all" ? Object.keys(lists) : (lists[area] ? [area] : []);
+      const perList = await Promise.all(keys.map(async (k) => {
+        const d = await cu(`list/${lists[k]}/task`);
+        // Solo los campos que el cliente necesita ver — sin URLs internas ni correos
+        return (d.tasks || []).map((t) => ({
+          id: t.id,
+          name: t.name,
+          area: k,
+          status: { status: t.status?.status || "", color: t.status?.color || "#c3c7d0" },
+          due_date: t.due_date || null,
+          assignees: (t.assignees || []).map((a) => ({ username: a.username || "", initials: a.initials || "", color: a.color || "" })),
+        }));
       }));
-      return res.status(200).json({ areas: Object.keys(lists), tasks });
+      return res.status(200).json({ areas: Object.keys(lists), tasks: perList.flat() });
     }
 
     if (action === "comments") {
