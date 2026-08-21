@@ -252,10 +252,12 @@ input:disabled{opacity:.5;cursor:not-allowed}
   <div class="card login-card" id="setupCard">
     <div class="setup-body">
       <h2>Entrar al tablero de DOM</h2>
-      <p class="sub">Acceso para el equipo DOM con código, o para Color Ads con su cuenta de ClickUp.</p>
+      <p class="sub">Ingresa con el código entregado por Color Ads.</p>
       <label style="display:block;font-size:12.5px;font-weight:600;color:#555c6e;margin-bottom:5px">Código de acceso</label>
-      <input type="password" id="codeInput" placeholder="Código entregado por Color Ads" autocomplete="off" onkeydown="if(event.key==='Enter')enterClient()"/>
-      <button class="btn btn-primary" id="clientBtn" onclick="enterClient()">Ver tablero →</button>
+      <input type="password" id="codeInput" placeholder="Tu código" autocomplete="off" onkeydown="if(event.key==='Enter')enterClient()"/>
+      <label style="display:block;font-size:12.5px;font-weight:600;color:#555c6e;margin-bottom:5px;margin-top:12px">Tu nombre <span style="font-weight:400;color:#a5aab6">(para firmar tus avances)</span></label>
+      <input type="text" id="nameInput" placeholder="Ej: Andrés" autocomplete="off" onkeydown="if(event.key==='Enter')enterClient()"/>
+      <button class="btn btn-primary" id="clientBtn" onclick="enterClient()">Entrar →</button>
       <div class="setup-error" id="setupError"></div>
       <button class="manual-toggle" onclick="toggleTeam()">¿Eres del equipo Color Ads?</button>
       <div class="manual-section" id="teamSection">
@@ -272,6 +274,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
     <div class="tabs">
       <span class="tab active" style="cursor:default">🎯 DOM</span>
       <span id="roBadge" style="display:none;padding:7px 13px;background:#fef3e2;border:1px solid #f0d6a8;border-radius:10px;color:#b9770e;font-size:12px;font-weight:600">👁 Solo lectura</span>
+      <span id="editBadge" style="display:none;padding:7px 13px;background:#e8f7ee;border:1px solid #bfe8cd;border-radius:10px;color:#178040;font-size:12px;font-weight:600">✏️ Edición DOM</span>
       <div class="tab-right">
         <button class="token-btn" onclick="logout()">Salir</button>
       </div>
@@ -279,6 +282,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
 
     <div class="card" id="boardCard">
       <div class="board-toolbar" id="areaChips"></div>
+      <div class="person-bar" id="projectBar" style="display:none"></div>
       <div class="person-bar" id="personBar" style="display:none"></div>
       <div class="board-summary" id="boardSummary" style="display:none"></div>
       <div class="board-body" id="boardBody">
@@ -319,21 +323,21 @@ input:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </div>
 
-<!-- Modal: Tarea rápida (solo equipo) -->
+<!-- Modal: Tarea rápida -->
 <div class="modal-overlay" id="quickOverlay" style="display:none" onclick="if(event.target===this)closeQuick()">
   <div class="modal">
     <h3>Tarea rápida para DOM</h3>
     <p>Se crea directo en ClickUp</p>
     <label>¿Qué hay que hacer?</label>
-    <input type="text" id="qtName" placeholder="Ej: Ajustar banner de la promo" onkeydown="if(event.key==='Enter')createQuickTask()"/>
+    <input type="text" id="qtName" placeholder="Ej: Ajustar render del lobby" onkeydown="if(event.key==='Enter')createQuickTask()"/>
     <div class="modal-row">
       <div>
         <label>Área</label>
         <select id="qtArea"></select>
       </div>
       <div>
-        <label>Responsable</label>
-        <select id="qtAssignee"></select>
+        <label>Proyecto</label>
+        <select id="qtProject"></select>
       </div>
     </div>
     <div class="modal-row">
@@ -344,12 +348,16 @@ input:disabled{opacity:.5;cursor:not-allowed}
       <div>
         <label>Prioridad</label>
         <select id="qtPriority">
-          <option value="normal" selected>Normal</option>
-          <option value="urgent">🔴 Urgente</option>
-          <option value="high">🟠 Alta</option>
-          <option value="low">Baja</option>
+          <option value="3" selected>Normal</option>
+          <option value="1">🔴 Urgente</option>
+          <option value="2">🟠 Alta</option>
+          <option value="4">Baja</option>
         </select>
       </div>
+    </div>
+    <div id="qtAssigneeWrap">
+      <label>Responsable</label>
+      <select id="qtAssignee"></select>
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeQuick()">Cancelar</button>
@@ -358,7 +366,21 @@ input:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </div>
 
-<!-- Modal: Asignar responsable (solo equipo) -->
+<!-- Modal: Nuevo proyecto -->
+<div class="modal-overlay" id="projOverlay" style="display:none" onclick="if(event.target===this)closeProj()">
+  <div class="modal">
+    <h3>Nuevo proyecto</h3>
+    <p>Quedará disponible para etiquetar y filtrar tareas</p>
+    <label>Nombre del proyecto</label>
+    <input type="text" id="projName" placeholder="Ej: Torre Norte" onkeydown="if(event.key==='Enter')createProject()"/>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeProj()">Cancelar</button>
+      <button class="modal-create" id="projBtn" onclick="createProject()">Crear proyecto →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Asignar responsable (solo equipo CA) -->
 <div class="modal-overlay" id="assignOverlay" style="display:none" onclick="if(event.target===this)closeAssign()">
   <div class="modal">
     <h3>Responsable de la tarea</h3>
@@ -370,7 +392,7 @@ input:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </div>
 
-<!-- Modal: Mover de área (solo equipo) -->
+<!-- Modal: Mover de área (solo equipo CA) -->
 <div class="modal-overlay" id="moveOverlay" style="display:none" onclick="if(event.target===this)closeMove()">
   <div class="modal">
     <h3>Mover tarea de área</h3>
@@ -386,7 +408,9 @@ input:disabled{opacity:.5;cursor:not-allowed}
 
 <script>
 const DOM_FOLDER_ID = "901318180640";
+const SPACE_ID = "90130971239";
 const TEAM_ID = "9013231845";
+const PROJECT_PREFIX = "dom:";
 const CLIENT = {name: "DOM", emoji: "🎯"};
 const LIST_DEFS = [
   {key:"paid",       name:"📣 Paid Media",           chip:"📣 Paid"},
@@ -398,34 +422,29 @@ const LIST_DEFS = [
 const LIST_LABELS = Object.fromEntries(LIST_DEFS.map(d => [d.key, d.name.replace(/^\S+\s/, "")]));
 LIST_LABELS.all = "todas las áreas";
 const AREA_CHIP = Object.fromEntries(LIST_DEFS.map(d => [d.key, d.chip]));
-const PRIORITY_MAP = {urgent:1, high:2, normal:3, low:4};
 const PRIORITY_LABELS = {1:"🔴 Urgente", 2:"🟠 Alta", 3:"Normal", 4:"Baja"};
-function prioNum(t) {
-  if (typeof t.priority === "number") return t.priority;
-  return t.priority ? Number(t.priority.id) || 3 : 3;
-}
-function prioFlag(t) {
-  const p = prioNum(t);
-  if (p === 1) return `<span class="prio-flag" style="color:#c0392b">🔴 urgente</span>`;
-  if (p === 2) return `<span class="prio-flag" style="color:#b9770e">🟠 alta</span>`;
-  return "";
-}
-
 
 let mode = null;            // "team" | "client"
+let clientRole = "view";    // "view" | "edit" (solo aplica en modo client)
+let who = "";               // nombre del editor DOM
 let clickupToken = "";
 let accessCode = "";
-let DOMLISTS = {};          // key → list id (solo modo equipo)
+let DOMLISTS = {};
 let MEMBERS = [];
 let ME = null;
+let PROJECTS = [];          // slugs sin prefijo
 let AREA = "all";
 let boardMode = "persona";
 let personFilter = null;
+let projectFilter = null;
 let boardTasks = [];
 let boardLoadSeq = 0;
 const doneStatusCache = {};
+let commentCache = new Map();
 
-const RO = () => mode === "client";
+const isTeam = () => mode === "team";
+const canEdit = () => mode === "team" || clientRole === "edit";
+const RO = () => !canEdit();
 
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),3200)}
@@ -433,6 +452,13 @@ function listKeyFor(n){n=n.toLowerCase();if(n.includes("paid"))return"paid";if(n
 function dayStart(d){const x=new Date(d);x.setHours(0,0,0,0);return x.getTime()}
 function linkify(s){return esc(s).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank">$1</a>')}
 function fmtCommentDate(ms){return new Date(Number(ms)).toLocaleDateString("es-CO",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function prioNum(t){if(typeof t.priority==="number")return t.priority;return t.priority?Number(t.priority.id)||3:3}
+function prioFlag(t){const p=prioNum(t);if(p===1)return `<span class="prio-flag" style="color:#c0392b">🔴 urgente</span>`;if(p===2)return `<span class="prio-flag" style="color:#b9770e">🟠 alta</span>`;return ""}
+function projName(slug){return slug.split("-").map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(" ")}
+function taskProjects(t){
+  if (Array.isArray(t.projects)) return t.projects; // payload del portal (ya sin prefijo)
+  return (t.tags || []).map(x => x.name || "").filter(n => n.startsWith(PROJECT_PREFIX)).map(n => n.slice(PROJECT_PREFIX.length));
+}
 
 async function cu(path, method = "GET", body = null) {
   const r = await fetch(`/api/clickup?path=${encodeURIComponent(path)}`, {
@@ -445,8 +471,12 @@ async function cu(path, method = "GET", body = null) {
   return d;
 }
 
-async function domApi(params) {
-  const r = await fetch(`/api/dom?${params}`, { headers: {"X-Access-Code": accessCode} });
+async function domApi(params, body = null) {
+  const r = await fetch(`/api/dom?${params}`, {
+    method: body ? "POST" : "GET",
+    headers: {"Content-Type":"application/json","X-Access-Code": accessCode},
+    body: body ? JSON.stringify(body) : undefined
+  });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) { const err = new Error(d.err || `Error ${r.status}`); err.status = r.status; throw err; }
   return d;
@@ -470,7 +500,12 @@ function showApp() {
   document.getElementById("setupCard").style.display = "none";
   document.getElementById("appShell").style.display = "block";
   document.getElementById("statusDot").classList.remove("off");
-  document.getElementById("roBadge").style.display = RO() ? "inline-block" : "none";
+  document.getElementById("roBadge").style.display = (mode === "client" && clientRole === "view") ? "inline-block" : "none";
+  document.getElementById("editBadge").style.display = (mode === "client" && clientRole === "edit") ? "inline-block" : "none";
+  if (mode === "client" && clientRole === "edit" && who) {
+    const hu = document.getElementById("headerUser");
+    hu.style.display = "flex"; hu.textContent = `${who} · DOM`;
+  }
   renderAreaChips();
   loadBoard();
 }
@@ -482,17 +517,21 @@ async function enterClient() {
   btn.disabled = true; btn.textContent = "Entrando...";
   document.getElementById("setupError").style.display = "none";
   accessCode = code;
+  who = document.getElementById("nameInput").value.trim().slice(0, 40);
   try {
-    await domApi(`action=board&area=${AREA}`);
+    const d = await domApi(`action=board&area=all`);
     mode = "client";
+    clientRole = d.role || "view";
+    PROJECTS = d.projects || [];
     localStorage.setItem("dom_code", code);
+    if (who) localStorage.setItem("dom_name", who);
     showApp();
   } catch (e) {
     accessCode = "";
     if (e.status === 401) localStorage.removeItem("dom_code");
     showError(e.message);
   }
-  btn.disabled = false; btn.textContent = "Ver tablero →";
+  btn.disabled = false; btn.textContent = "Entrar →";
 }
 
 async function enterTeam(tokenArg) {
@@ -503,8 +542,8 @@ async function enterTeam(tokenArg) {
   document.getElementById("setupError").style.display = "none";
   clickupToken = token;
   try {
-    const [folder, teamData, userData] = await Promise.all([
-      cu(`folder/${DOM_FOLDER_ID}`), cu("team"), cu("user"),
+    const [folder, teamData, userData, tagData] = await Promise.all([
+      cu(`folder/${DOM_FOLDER_ID}`), cu("team"), cu("user"), cu(`space/${SPACE_ID}/tag`),
     ]);
     DOMLISTS = {};
     for (const l of folder.lists || []) {
@@ -514,6 +553,7 @@ async function enterTeam(tokenArg) {
     const team = (teamData.teams || []).find(t => String(t.id) === TEAM_ID) || (teamData.teams || [])[0];
     MEMBERS = (team?.members || []).map(m => ({id: m.user.id, name: m.user.username || m.user.email || ""})).filter(m => m.id);
     ME = userData.user || null;
+    PROJECTS = (tagData.tags || []).map(t => t.name).filter(n => n.startsWith(PROJECT_PREFIX)).map(n => n.slice(PROJECT_PREFIX.length)).sort();
     mode = "team";
     localStorage.setItem("cu_token", token);
     if (ME) { const hu = document.getElementById("headerUser"); hu.style.display = "flex"; hu.textContent = ME.username || ""; }
@@ -527,9 +567,9 @@ async function enterTeam(tokenArg) {
 }
 
 function logout() {
-  if (RO()) localStorage.removeItem("dom_code");
+  if (mode === "client") { localStorage.removeItem("dom_code"); }
   else localStorage.removeItem("cu_token");
-  mode = null; clickupToken = ""; accessCode = ""; personFilter = null;
+  mode = null; clickupToken = ""; accessCode = ""; personFilter = null; projectFilter = null; clientRole = "view";
   document.getElementById("appShell").style.display = "none";
   document.getElementById("setupCard").style.display = "block";
   document.getElementById("headerUser").style.display = "none";
@@ -553,7 +593,7 @@ function renderAreaChips() {
   spacer.className = "spacer";
   bar.appendChild(spacer);
 
-  if (!RO()) {
+  if (canEdit()) {
     const quick = document.createElement("button");
     quick.className = "quick-btn";
     quick.textContent = "+ Tarea rápida";
@@ -580,6 +620,40 @@ function renderAreaChips() {
   bar.appendChild(refresh);
 }
 
+function renderProjectBar() {
+  const bar = document.getElementById("projectBar");
+  bar.style.display = "flex";
+  bar.innerHTML = "";
+  const lbl = document.createElement("span");
+  lbl.style.cssText = "font-size:11.5px;font-weight:700;color:#a5aab6;text-transform:uppercase;letter-spacing:.5px;align-self:center";
+  lbl.textContent = "Proyecto:";
+  bar.appendChild(lbl);
+
+  const counts = {};
+  for (const it of boardTasks) for (const p of taskProjects(it.task)) counts[p] = (counts[p] || 0) + 1;
+
+  const mk = (slug, label, n) => {
+    const b = document.createElement("button");
+    b.className = "person-chip" + (projectFilter === slug ? " active" : "");
+    b.innerHTML = `<span style="padding-left:5px">${esc(label)}</span>${n !== undefined ? `<span class="pc-count">${n}</span>` : ""}`;
+    b.onclick = () => { projectFilter = slug; renderProjectBar(); renderBoard(); };
+    bar.appendChild(b);
+  };
+  mk(null, "Todos", boardTasks.length);
+  for (const slug of PROJECTS) mk(slug, projName(slug), counts[slug] || 0);
+  const sinP = boardTasks.filter(it => !taskProjects(it.task).length).length;
+  if (sinP) mk("__sin__", "Sin proyecto", sinP);
+
+  if (canEdit()) {
+    const b = document.createElement("button");
+    b.className = "person-chip";
+    b.style.borderStyle = "dashed";
+    b.innerHTML = `<span style="padding-left:5px;color:#7b68ee;font-weight:600">＋ Proyecto</span>`;
+    b.onclick = openProj;
+    bar.appendChild(b);
+  }
+}
+
 async function loadBoard() {
   const seq = ++boardLoadSeq;
   const body = document.getElementById("boardBody");
@@ -587,8 +661,9 @@ async function loadBoard() {
   body.innerHTML = `<div class="board-loading">Cargando ${esc(LIST_LABELS[AREA])} de DOM...</div>`;
   try {
     let items = [];
-    if (RO()) {
+    if (mode === "client") {
       const d = await domApi(`action=board&area=${AREA}`);
+      PROJECTS = d.projects || PROJECTS;
       items = (d.tasks || []).map(t => ({task: t, listId: null, area: t.area}));
     } else {
       const entries = AREA === "all" ? Object.entries(DOMLISTS)
@@ -604,6 +679,7 @@ async function loadBoard() {
     if (seq !== boardLoadSeq) return;
     boardTasks = items;
     if (personFilter !== null && !filteredTasks().length) personFilter = null;
+    renderProjectBar();
     renderPersonBar();
     renderBoard();
   } catch (e) {
@@ -645,16 +721,19 @@ function renderPersonBar() {
 }
 
 function filteredTasks() {
-  if (personFilter === null) return boardTasks;
-  if (personFilter === "sin") return boardTasks.filter(it => !(it.task.assignees || []).length);
-  return boardTasks.filter(it => {
+  let items = boardTasks;
+  if (projectFilter === "__sin__") items = items.filter(it => !taskProjects(it.task).length);
+  else if (projectFilter !== null) items = items.filter(it => taskProjects(it.task).includes(projectFilter));
+  if (personFilter === "sin") items = items.filter(it => !(it.task.assignees || []).length);
+  else if (personFilter !== null) items = items.filter(it => {
     const a = (it.task.assignees || [])[0];
     return a && String(a.username || a.id) === String(personFilter);
   });
+  return items;
 }
 
 function dueInfo(t) {
-  if (!t.due_date) return {ts: null, cls: RO() ? "" : "nodate", label: RO() ? "Sin fecha" : "＋ Fecha"};
+  if (!t.due_date) return {ts: null, cls: canEdit() ? "nodate" : "", label: canEdit() ? "＋ Fecha" : "Sin fecha"};
   const ts = Number(t.due_date);
   const today = dayStart(new Date());
   const due = dayStart(new Date(ts));
@@ -673,20 +752,23 @@ function taskRow(item) {
   const dateVal = info.ts ? new Date(info.ts).toLocaleDateString("en-CA") : "";
   const avatarStyle = a && a.color ? `style="background:${esc(a.color)}22;color:${esc(a.color)}"` : "";
   const avatar = initials
-    ? `<div class="trow-assignee" ${RO() ? "" : `onclick="openAssign('${esc(t.id)}')" title="Cambiar responsable"`} ${avatarStyle} ${RO() ? 'style="cursor:default"' : ""}>${esc(initials.toUpperCase())}</div>`
-    : (RO() ? "" : `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>`);
-  const dateChip = RO()
-    ? `<span class="date-chip ${info.cls}" style="cursor:default">${info.label}</span>`
-    : `<label class="date-chip ${info.cls}" title="Fecha de entrega">${info.label}<input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)" onclick="if(this.showPicker){event.preventDefault();try{this.showPicker()}catch(e){this.focus()}}"/></label>`;
-  const actions = RO() ? "" :
-    `<button class="move-btn" title="Mover a otra área" onclick="openMove('${esc(t.id)}')">⇄</button>
-     <button class="done-btn" onclick="markDone('${esc(t.id)}', this)">✓ Listo</button>`;
+    ? `<div class="trow-assignee" ${isTeam() ? `onclick="openAssign('${esc(t.id)}')" title="Cambiar responsable"` : 'style="cursor:default"'} ${avatarStyle}>${esc(initials.toUpperCase())}</div>`
+    : (isTeam() ? `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>` : "");
+  const dateChip = canEdit()
+    ? `<label class="date-chip ${info.cls}" title="Fecha de entrega">${info.label}<input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)" onclick="if(this.showPicker){event.preventDefault();try{this.showPicker()}catch(e){this.focus()}}"/></label>`
+    : `<span class="date-chip ${info.cls}" style="cursor:default">${info.label}</span>`;
+  const actions =
+    (isTeam() ? `<button class="move-btn" title="Mover a otra área" onclick="openMove('${esc(t.id)}')">⇄</button>` : "") +
+    (canEdit() ? `<button class="done-btn" onclick="markDone('${esc(t.id)}', this)">✓ Listo</button>` : "");
+  const projs = taskProjects(t);
+  const projBadge = projs.length ? `<span style="background:#efe9ff;color:#5b48c2;border-radius:10px;padding:1px 8px;font-weight:600">${esc(projName(projs[0]))}</span>` : "";
   return `<div class="trow" id="trow-${esc(t.id)}">
     <div class="trow-status" style="background:${esc(t.status?.color || "#c3c7d0")}"></div>
     <div class="trow-main">
       <a class="trow-name" href="#" onclick="event.preventDefault();openDetail('${esc(t.id)}')" title="Ver avances">${esc(t.name)}</a>
       <div class="trow-sub">
-        <span class="trow-client">${esc(AREA_CHIP[item.area] || CLIENT.emoji + " DOM")}</span>
+        <span class="trow-client">${esc(AREA_CHIP[item.area] || "🎯 DOM")}</span>
+        ${projBadge}
         <span>${esc(t.status?.status || "")}</span>
         ${prioFlag(t)}
         ${a && boardMode !== "persona" ? `<span>· ${esc(a.username || "")}</span>` : ""}
@@ -718,7 +800,7 @@ function renderBoard() {
     <span class="sum-today"><b>${forToday.length}</b> para hoy</span>
     <span class="sum-nodate"><b>${noDate.length}</b> sin fecha</span>`;
   if (!items.length) {
-    body.innerHTML = `<div class="board-empty">No hay tareas abiertas de ${esc(LIST_LABELS[AREA])} 🎉</div>`;
+    body.innerHTML = `<div class="board-empty">No hay tareas abiertas con estos filtros 🎉</div>`;
     return;
   }
   let html = "";
@@ -777,23 +859,31 @@ async function openDetail(taskId) {
   const t = item.task;
   const dT = document.getElementById("dTitle");
   dT.value = t.name;
-  dT.readOnly = RO();
+  dT.readOnly = !canEdit();
   const info = dueInfo(t);
   const a = (t.assignees || [])[0];
+  const projs = taskProjects(t);
+  const projSel = canEdit()
+    ? `<select id="dProject" class="dprio" onchange="setProject(this.value)">
+        <option value="">Sin proyecto</option>
+        ${PROJECTS.map(p => `<option value="${esc(p)}" ${projs[0]===p?"selected":""}>${esc(projName(p))}</option>`).join("")}
+      </select>`
+    : (projs.length ? `<span>📁 ${esc(projName(projs[0]))}</span>` : "");
   document.getElementById("dMeta").innerHTML = `
     <span>${CLIENT.emoji} DOM</span>
-    <span>${esc(LIST_LABELS[detailCtx.area] || LIST_LABELS[AREA] || "")}</span>
+    <span>${esc(LIST_LABELS[item.area] || "")}</span>
+    ${projSel}
     <span>${esc(t.status?.status || "")}</span>
     <span>👤 ${a ? esc(a.username) : "Sin asignar"}</span>
     <span>📅 ${info.ts ? esc(info.label) : "Sin fecha"}</span>
-    ${RO()
-      ? `<span>${PRIORITY_LABELS[prioNum(t)] || "Normal"}</span>`
-      : `<select id="dPriority" class="dprio" onchange="changePriority(this.value)">${[1,2,3,4].map(n => `<option value="${n}" ${prioNum(t)===n?"selected":""}>${PRIORITY_LABELS[n]}</option>`).join("")}</select>`}`;
-  document.getElementById("dForm").style.display = RO() ? "none" : "block";
-  document.getElementById("dCloseRO").style.display = RO() ? "flex" : "none";
-  if (!RO()) {
+    ${canEdit()
+      ? `<select id="dPriority" class="dprio" onchange="changePriority(this.value)">${[1,2,3,4].map(n => `<option value="${n}" ${prioNum(t)===n?"selected":""}>${PRIORITY_LABELS[n]}</option>`).join("")}</select>`
+      : `<span>${PRIORITY_LABELS[prioNum(t)] || "Normal"}</span>`}`;
+  document.getElementById("dForm").style.display = canEdit() ? "block" : "none";
+  document.getElementById("dCloseRO").style.display = canEdit() ? "none" : "flex";
+  if (canEdit()) {
     const cl = document.getElementById("dClickupLink");
-    if (t.url && t.url.startsWith("https://")) { cl.href = t.url; cl.style.display = "block"; } else cl.style.display = "none";
+    if (isTeam() && t.url && t.url.startsWith("https://")) { cl.href = t.url; cl.style.display = "block"; } else cl.style.display = "none";
     document.getElementById("dText").value = "";
     document.getElementById("dDate").value = "";
     document.getElementById("dLink").value = "";
@@ -806,26 +896,26 @@ async function openDetail(taskId) {
 async function loadComments(taskId) {
   try {
     let comments;
-    if (RO()) {
+    if (mode === "client") {
       const d = await domApi(`action=comments&task_id=${encodeURIComponent(taskId)}`);
-      comments = (d.comments || []).map(c => ({user: c.user, date: c.date, text: c.text}));
+      comments = d.comments || [];
     } else {
       const d = await cu(`task/${taskId}/comment`);
       comments = (d.comments || []).map(c => ({id: c.id, user: c.user?.username || "", date: c.date, text: c.comment_text || ""}))
         .sort((a, b) => Number(a.date) - Number(b.date));
     }
     if (detailCtx?.task.id !== taskId) return;
+    commentCache = new Map(comments.filter(c => c.id).map(c => [String(c.id), c.text]));
     const box = document.getElementById("dComments");
     if (!comments.length) {
-      box.innerHTML = `<div class="comments-empty">Sin avances todavía.</div>`;
+      box.innerHTML = `<div class="comments-empty">Sin avances todavía${canEdit() ? " — agrega el primero abajo" : ""}.</div>`;
       return;
     }
-    commentCache = new Map(comments.filter(c => c.id).map(c => [String(c.id), c.text]));
     box.innerHTML = comments.map(c => `<div class="comment">
       <div class="comment-head">
         <span class="comment-author">${esc(c.user)}</span>
         <span class="comment-date">${fmtCommentDate(c.date)}</span>
-        ${!RO() && c.id ? `<span class="comment-actions">
+        ${canEdit() && c.id ? `<span class="comment-actions">
           <button class="cmt-btn" title="Editar avance" onclick="editComment('${esc(c.id)}')">✏️</button>
           <button class="cmt-btn" title="Eliminar avance" onclick="deleteComment('${esc(c.id)}')">🗑</button>
         </span>` : ""}
@@ -837,42 +927,6 @@ async function loadComments(taskId) {
     document.getElementById("dComments").innerHTML = `<div class="comments-empty">✕ No se pudieron cargar los avances</div>`;
   }
 }
-
-async function saveName() {
-  if (RO() || !detailCtx) return;
-  const item = detailCtx;
-  const inp = document.getElementById("dTitle");
-  const v = inp.value.trim();
-  if (!v || v === item.task.name) { inp.value = item.task.name; return; }
-  try {
-    await cu(`task/${item.task.id}`, "PUT", {name: v});
-    item.task.name = v;
-    toast("✏️ Nombre actualizado");
-    renderBoard();
-  } catch (e) {
-    toast("✕ No se pudo renombrar: " + e.message);
-    inp.value = item.task.name;
-  }
-}
-
-async function changePriority(v) {
-  if (RO() || !detailCtx) return;
-  const item = detailCtx;
-  try {
-    await cu(`task/${item.task.id}`, "PUT", {priority: Number(v)});
-    item.task.priority = {id: String(v), priority: (PRIORITY_LABELS[Number(v)] || "normal").toLowerCase()};
-    toast("🚩 Prioridad actualizada");
-    renderBoard();
-  } catch (e) {
-    toast("✕ No se pudo cambiar la prioridad: " + e.message);
-  }
-}
-
-document.getElementById("dTitle").addEventListener("blur", saveName);
-document.getElementById("dTitle").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
-
-
-let commentCache = new Map();
 
 function editComment(id) {
   const div = document.getElementById(`cmt-text-${id}`);
@@ -893,11 +947,10 @@ async function saveComment(id) {
   const v = ta?.value.trim();
   if (!v || !detailCtx) return;
   try {
-    await cu(`comment/${id}`, "PUT", {comment_text: v});
+    if (isTeam()) await cu(`comment/${id}`, "PUT", {comment_text: v});
+    else await domApi("action=edit_comment", {task_id: detailCtx.task.id, comment_id: id, text: v});
     toast("✏️ Avance actualizado");
-  } catch (e) {
-    toast("✕ No se pudo editar: " + e.message);
-  }
+  } catch (e) { toast("✕ No se pudo editar: " + e.message); }
   loadComments(detailCtx.task.id);
 }
 
@@ -905,11 +958,10 @@ async function deleteComment(id) {
   if (!detailCtx) return;
   if (!confirm("¿Eliminar este avance? Esta acción no se puede deshacer.")) return;
   try {
-    await cu(`comment/${id}`, "DELETE");
+    if (isTeam()) await cu(`comment/${id}`, "DELETE");
+    else await domApi("action=delete_comment", {task_id: detailCtx.task.id, comment_id: id});
     toast("🗑 Avance eliminado");
-  } catch (e) {
-    toast("✕ No se pudo eliminar: " + e.message);
-  }
+  } catch (e) { toast("✕ No se pudo eliminar: " + e.message); }
   loadComments(detailCtx.task.id);
 }
 
@@ -918,9 +970,108 @@ function closeDetail() {
   detailCtx = null;
 }
 
+async function saveName() {
+  if (!canEdit() || !detailCtx) return;
+  const item = detailCtx;
+  const inp = document.getElementById("dTitle");
+  const v = inp.value.trim();
+  if (!v || v === item.task.name) { inp.value = item.task.name; return; }
+  try {
+    if (isTeam()) await cu(`task/${item.task.id}`, "PUT", {name: v});
+    else await domApi("action=update_task", {task_id: item.task.id, name: v});
+    item.task.name = v;
+    toast("✏️ Nombre actualizado");
+    renderBoard();
+  } catch (e) {
+    toast("✕ No se pudo renombrar: " + e.message);
+    inp.value = item.task.name;
+  }
+}
+
+async function changePriority(v) {
+  if (!canEdit() || !detailCtx) return;
+  const item = detailCtx;
+  try {
+    if (isTeam()) await cu(`task/${item.task.id}`, "PUT", {priority: Number(v)});
+    else await domApi("action=update_task", {task_id: item.task.id, priority: Number(v)});
+    item.task.priority = isTeam() ? {id: String(v)} : Number(v);
+    toast("🚩 Prioridad actualizada");
+    renderBoard();
+  } catch (e) { toast("✕ No se pudo cambiar la prioridad: " + e.message); }
+}
+
+async function setProject(slug) {
+  if (!canEdit() || !detailCtx) return;
+  const item = detailCtx;
+  try {
+    if (isTeam()) {
+      for (const p of taskProjects(item.task)) await cu(`task/${item.task.id}/tag/${encodeURIComponent(PROJECT_PREFIX + p)}`, "DELETE").catch(() => {});
+      if (slug) await cu(`task/${item.task.id}/tag/${encodeURIComponent(PROJECT_PREFIX + slug)}`, "POST");
+      item.task.tags = slug ? [{name: PROJECT_PREFIX + slug}] : [];
+    } else {
+      await domApi("action=set_project", {task_id: item.task.id, project: slug || null});
+      item.task.projects = slug ? [slug] : [];
+    }
+    toast(slug ? `📁 Proyecto: ${projName(slug)}` : "📁 Proyecto quitado");
+    renderProjectBar();
+    renderBoard();
+  } catch (e) { toast("✕ No se pudo cambiar el proyecto: " + e.message); }
+}
+
+document.getElementById("dTitle").addEventListener("blur", saveName);
+document.getElementById("dTitle").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+
+// --- Acciones sobre tareas ---
+async function doneStatusFor(listId) {
+  if (!doneStatusCache[listId]) {
+    const d = await cu(`list/${listId}`);
+    const s = (d.statuses || []).find(s => s.type === "closed" || s.type === "done");
+    doneStatusCache[listId] = s ? s.status : "complete";
+  }
+  return doneStatusCache[listId];
+}
+
+async function markDone(taskId, btn) {
+  if (!canEdit()) return;
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item) return;
+  btn.disabled = true; btn.textContent = "...";
+  try {
+    if (isTeam()) {
+      const status = await doneStatusFor(item.listId);
+      await cu(`task/${taskId}`, "PUT", {status});
+    } else {
+      await domApi("action=update_task", {task_id: taskId, done: true});
+    }
+    boardTasks = boardTasks.filter(i => i.task.id !== taskId);
+    toast(`✓ Completada: ${item.task.name}`);
+    const row = document.getElementById(`trow-${taskId}`);
+    if (row) { row.classList.add("removing"); setTimeout(() => { renderProjectBar(); renderPersonBar(); renderBoard(); }, 300); }
+    else { renderProjectBar(); renderPersonBar(); renderBoard(); }
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "✓ Listo";
+    toast("✕ No se pudo completar: " + e.message);
+  }
+}
+
+async function changeDate(taskId, dateStr) {
+  if (!canEdit()) return;
+  const item = boardTasks.find(i => i.task.id === taskId);
+  if (!item || !dateStr) return;
+  const [y, mo, da] = dateStr.split("-").map(Number);
+  const ts = new Date(y, mo - 1, da, 12).getTime();
+  try {
+    if (isTeam()) await cu(`task/${taskId}`, "PUT", {due_date: ts, due_date_time: false});
+    else await domApi("action=update_task", {task_id: taskId, due_date: ts});
+    item.task.due_date = String(ts);
+    toast("📅 Fecha actualizada");
+    renderBoard();
+  } catch (e) { toast("✕ No se pudo cambiar la fecha: " + e.message); }
+}
+
 async function addComment() {
   const btn = document.getElementById("dAddBtn");
-  if (btn.disabled || !detailCtx || RO()) return;
+  if (btn.disabled || !detailCtx || !canEdit()) return;
   const text = document.getElementById("dText").value.trim();
   const dateStr = document.getElementById("dDate").value;
   let link = document.getElementById("dLink").value.trim();
@@ -937,68 +1088,49 @@ async function addComment() {
   if (link) parts.push(`🔗 ${link}`);
   btn.disabled = true; btn.textContent = "Guardando...";
   try {
-    await cu(`task/${detailCtx.task.id}/comment`, "POST", {comment_text: parts.join("\n"), notify_all: false});
+    if (isTeam()) await cu(`task/${detailCtx.task.id}/comment`, "POST", {comment_text: parts.join("\n"), notify_all: false});
+    else await domApi("action=add_comment", {task_id: detailCtx.task.id, text: parts.join("\n"), who});
     document.getElementById("dText").value = "";
     document.getElementById("dDate").value = "";
     document.getElementById("dLink").value = "";
     toast("💬 Avance guardado");
     loadComments(detailCtx.task.id);
-  } catch (e) {
-    toast("✕ No se pudo guardar: " + e.message);
-  }
+  } catch (e) { toast("✕ No se pudo guardar: " + e.message); }
   btn.disabled = false; btn.textContent = "Agregar avance →";
 }
 
-// --- Acciones de equipo ---
-async function doneStatusFor(listId) {
-  if (!doneStatusCache[listId]) {
-    const d = await cu(`list/${listId}`);
-    const s = (d.statuses || []).find(s => s.type === "closed" || s.type === "done");
-    doneStatusCache[listId] = s ? s.status : "complete";
-  }
-  return doneStatusCache[listId];
+// --- Proyectos ---
+function openProj() {
+  if (!canEdit()) return;
+  document.getElementById("projName").value = "";
+  document.getElementById("projOverlay").style.display = "flex";
+  setTimeout(() => document.getElementById("projName").focus(), 100);
 }
-
-async function markDone(taskId, btn) {
-  if (RO()) return;
-  const _item = boardTasks.find(i => i.task.id === taskId);
-  if (!_item || !_item.listId) return;
-  btn.disabled = true; btn.textContent = "...";
+function closeProj() { document.getElementById("projOverlay").style.display = "none"; }
+async function createProject() {
+  const btn = document.getElementById("projBtn");
+  if (btn.disabled) return;
+  const name = document.getElementById("projName").value.trim();
+  if (!name) return;
+  const slug = name.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9\-áéíóúñ]/g, "").slice(0, 30);
+  if (!slug) { toast("✕ Nombre inválido"); return; }
+  btn.disabled = true; btn.textContent = "Creando...";
   try {
-    const status = await doneStatusFor(_item.listId);
-    await cu(`task/${taskId}`, "PUT", {status});
-    const item = boardTasks.find(i => i.task.id === taskId);
-    boardTasks = boardTasks.filter(i => i.task.id !== taskId);
-    toast(`✓ Completada: ${item ? item.task.name : "tarea"}`);
-    const row = document.getElementById(`trow-${taskId}`);
-    if (row) { row.classList.add("removing"); setTimeout(() => { renderPersonBar(); renderBoard(); }, 300); }
-    else { renderPersonBar(); renderBoard(); }
-  } catch (e) {
-    btn.disabled = false; btn.textContent = "✓ Listo";
-    toast("✕ No se pudo completar: " + e.message);
-  }
+    if (isTeam()) await cu(`space/${SPACE_ID}/tag`, "POST", {tag: {name: PROJECT_PREFIX + slug, tag_fg: "#ffffff", tag_bg: "#7b68ee"}});
+    else await domApi("action=create_project", {name});
+    if (!PROJECTS.includes(slug)) PROJECTS.push(slug);
+    PROJECTS.sort();
+    closeProj();
+    toast(`📁 Proyecto creado: ${projName(slug)}`);
+    renderProjectBar();
+  } catch (e) { toast("✕ No se pudo crear: " + e.message); }
+  btn.disabled = false; btn.textContent = "Crear proyecto →";
 }
 
-async function changeDate(taskId, dateStr) {
-  if (RO()) return;
-  const item = boardTasks.find(i => i.task.id === taskId);
-  if (!item || !dateStr) return;
-  const [y, mo, da] = dateStr.split("-").map(Number);
-  const ts = new Date(y, mo - 1, da, 12).getTime();
-  try {
-    await cu(`task/${taskId}`, "PUT", {due_date: ts, due_date_time: false});
-    item.task.due_date = String(ts);
-    toast("📅 Fecha actualizada");
-    renderBoard();
-  } catch (e) {
-    toast("✕ No se pudo cambiar la fecha: " + e.message);
-  }
-}
-
-// Asignar responsable
+// --- Asignar responsable (solo equipo CA) ---
 let assignCtx = null;
 function openAssign(taskId) {
-  if (RO()) return;
+  if (!isTeam()) return;
   const item = boardTasks.find(i => i.task.id === taskId);
   if (!item) return;
   assignCtx = item;
@@ -1044,10 +1176,10 @@ async function doAssign(memberId, btn) {
   } catch (e) { toast("✕ No se pudo asignar: " + e.message); closeAssign(); }
 }
 
-// Mover de área
+// --- Mover de área (solo equipo CA) ---
 let moveCtx = null;
 function openMove(taskId) {
-  if (RO()) return;
+  if (!isTeam()) return;
   const item = boardTasks.find(i => i.task.id === taskId);
   if (!item) return;
   moveCtx = item;
@@ -1097,43 +1229,56 @@ async function doMove(targetKey, btn) {
   } catch (e) { toast("✕ No se pudo mover: " + e.message); closeMove(); }
 }
 
-// Tarea rápida (DOM fijo)
+// --- Tarea rápida ---
 function openQuick() {
-  if (RO()) return;
+  if (!canEdit()) return;
   const defArea = AREA === "all" ? "disenio" : AREA;
   document.getElementById("qtArea").innerHTML = LIST_DEFS
     .map(d => `<option value="${d.key}" ${d.key === defArea ? "selected" : ""}>${d.name}</option>`).join("");
-  document.getElementById("qtAssignee").innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
-    .slice().sort((a, b) => a.name.localeCompare(b.name))
-    .map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+  document.getElementById("qtProject").innerHTML = `<option value="">Sin proyecto</option>` +
+    PROJECTS.map(p => `<option value="${esc(p)}" ${projectFilter === p ? "selected" : ""}>${esc(projName(p))}</option>`).join("");
+  const aw = document.getElementById("qtAssigneeWrap");
+  if (isTeam()) {
+    aw.style.display = "block";
+    document.getElementById("qtAssignee").innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
+      .slice().sort((a, b) => a.name.localeCompare(b.name))
+      .map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+  } else aw.style.display = "none";
   document.getElementById("qtName").value = "";
   document.getElementById("qtDate").value = "";
-  document.getElementById("qtPriority").value = "normal";
+  document.getElementById("qtPriority").value = "3";
   document.getElementById("quickOverlay").style.display = "flex";
   setTimeout(() => document.getElementById("qtName").focus(), 100);
 }
 function closeQuick() { document.getElementById("quickOverlay").style.display = "none"; }
 async function createQuickTask() {
   const btn = document.getElementById("qtCreateBtn");
-  if (btn.disabled || RO()) return;
+  if (btn.disabled || !canEdit()) return;
   const name = document.getElementById("qtName").value.trim();
   if (!name) { document.getElementById("qtName").focus(); return; }
   const areaKey = document.getElementById("qtArea").value;
-  const listId = DOMLISTS[areaKey];
-  if (!listId) { toast("✕ DOM no tiene esa lista"); return; }
-  const assignee = document.getElementById("qtAssignee").value;
+  const project = document.getElementById("qtProject").value;
   const dateStr = document.getElementById("qtDate").value;
-  const priority = PRIORITY_MAP[document.getElementById("qtPriority").value] || 3;
-  const body = {name, priority};
-  if (assignee) body.assignees = [Number(assignee)];
+  const priority = Number(document.getElementById("qtPriority").value) || 3;
+  let due = null;
   if (dateStr) {
     const [y, mo, da] = dateStr.split("-").map(Number);
-    body.due_date = new Date(y, mo - 1, da, 12).getTime();
-    body.due_date_time = false;
+    due = new Date(y, mo - 1, da, 12).getTime();
   }
   btn.disabled = true; btn.textContent = "Creando...";
   try {
-    await cu(`list/${listId}/task`, "POST", body);
+    if (isTeam()) {
+      const listId = DOMLISTS[areaKey];
+      if (!listId) throw new Error("DOM no tiene esa lista");
+      const body = {name, priority};
+      if (due) { body.due_date = due; body.due_date_time = false; }
+      if (project) body.tags = [PROJECT_PREFIX + project];
+      const assignee = document.getElementById("qtAssignee").value;
+      if (assignee) body.assignees = [Number(assignee)];
+      await cu(`list/${listId}/task`, "POST", body);
+    } else {
+      await domApi("action=create_task", {area: areaKey, name, priority, due_date: due, project, who});
+    }
     closeQuick();
     toast(`✓ Tarea creada en ${LIST_LABELS[areaKey]}`);
     if (areaKey === AREA || AREA === "all") loadBoard();
@@ -1149,13 +1294,16 @@ async function createQuickTask() {
     enterTeam(hash.get("cu_token"));
     return;
   }
+  const storedName = localStorage.getItem("dom_name");
+  if (storedName) document.getElementById("nameInput").value = storedName;
   const storedToken = localStorage.getItem("cu_token");
   if (storedToken) { enterTeam(storedToken); return; }
   const storedCode = localStorage.getItem("dom_code");
   if (storedCode) {
     document.getElementById("codeInput").value = storedCode;
     accessCode = storedCode;
-    domApi(`action=board&area=${AREA}`).then(() => { mode = "client"; showApp(); })
+    who = storedName || "";
+    domApi(`action=board&area=all`).then(d => { mode = "client"; clientRole = d.role || "view"; PROJECTS = d.projects || []; showApp(); })
       .catch(() => { localStorage.removeItem("dom_code"); accessCode = ""; });
   }
 })();
