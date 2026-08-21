@@ -178,6 +178,10 @@ input:disabled{opacity:.5;cursor:not-allowed}
 .dtitle-input:focus:not(:read-only){border-color:#2f5fd0;background:#fff;box-shadow:0 0 0 3px rgba(47,95,208,.12)}
 .dprio{width:auto;padding:4px 8px;font-size:12px;border-radius:14px;border:1px solid #e7e9ee;background:#f6f7f9;color:#3d4354;font-weight:500}
 .prio-flag{font-weight:700}
+.comment-actions{margin-left:auto;display:flex;gap:2px}
+.cmt-btn{background:none;border:none;cursor:pointer;font-size:12px;opacity:.35;padding:2px 4px;border-radius:4px}
+.cmt-btn:hover{opacity:1;background:#eceef2}
+.cmt-edit-ta{width:100%;min-height:56px;padding:8px 10px;border:1px solid #2f5fd0;border-radius:8px;font-size:13px;font-family:inherit;outline:none;resize:vertical}
 /* Toast */
 .toast{position:fixed;bottom:22px;right:22px;background:#141927;color:#fff;font-size:13.5px;font-weight:500;padding:12px 18px;border-radius:10px;box-shadow:0 4px 14px rgba(20,25,39,.25);opacity:0;transform:translateY(8px);transition:all .25s;z-index:300;pointer-events:none}
 .toast.show{opacity:1;transform:translateY(0)}
@@ -1115,12 +1119,17 @@ async function loadComments(taskId) {
       box.innerHTML = `<div class="comments-empty">Sin avances todavía — agrega el primero abajo.</div>`;
       return;
     }
+    commentCache = new Map(comments.map(c => [String(c.id), c.comment_text || ""]));
     box.innerHTML = comments.map(c => `<div class="comment">
       <div class="comment-head">
         <span class="comment-author">${esc(c.user?.username || "")}</span>
         <span class="comment-date">${fmtCommentDate(c.date)}</span>
+        <span class="comment-actions">
+          <button class="cmt-btn" title="Editar avance" onclick="editComment('${esc(c.id)}')">✏️</button>
+          <button class="cmt-btn" title="Eliminar avance" onclick="deleteComment('${esc(c.id)}')">🗑</button>
+        </span>
       </div>
-      <div class="comment-text">${linkify(c.comment_text || "")}</div>
+      <div class="comment-text" id="cmt-text-${esc(c.id)}">${linkify(c.comment_text || "")}</div>
     </div>`).join("");
     box.scrollTop = box.scrollHeight;
   } catch (e) {
@@ -1160,6 +1169,48 @@ async function changePriority(v) {
 
 document.getElementById("dTitle").addEventListener("blur", saveName);
 document.getElementById("dTitle").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+
+
+let commentCache = new Map();
+
+function editComment(id) {
+  const div = document.getElementById(`cmt-text-${id}`);
+  if (!div) return;
+  const orig = commentCache.get(String(id)) || "";
+  div.innerHTML = `<textarea class="cmt-edit-ta" id="cmt-edit-${id}"></textarea>
+    <div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-end">
+      <button class="modal-cancel" style="flex:0 0 auto;padding:5px 10px;font-size:12px" onclick="loadComments(detailCtx.task.id)">Cancelar</button>
+      <button class="modal-create" style="flex:0 0 auto;padding:5px 12px;font-size:12px" onclick="saveComment('${id}')">Guardar</button>
+    </div>`;
+  const ta = document.getElementById(`cmt-edit-${id}`);
+  ta.value = orig;
+  ta.focus();
+}
+
+async function saveComment(id) {
+  const ta = document.getElementById(`cmt-edit-${id}`);
+  const v = ta?.value.trim();
+  if (!v || !detailCtx) return;
+  try {
+    await cu(`comment/${id}`, "PUT", {comment_text: v});
+    toast("✏️ Avance actualizado");
+  } catch (e) {
+    toast("✕ No se pudo editar: " + e.message);
+  }
+  loadComments(detailCtx.task.id);
+}
+
+async function deleteComment(id) {
+  if (!detailCtx) return;
+  if (!confirm("¿Eliminar este avance? Esta acción no se puede deshacer.")) return;
+  try {
+    await cu(`comment/${id}`, "DELETE");
+    toast("🗑 Avance eliminado");
+  } catch (e) {
+    toast("✕ No se pudo eliminar: " + e.message);
+  }
+  loadComments(detailCtx.task.id);
+}
 
 function closeDetail() {
   document.getElementById("detailOverlay").style.display = "none";
