@@ -422,6 +422,7 @@ const DOM_FOLDER_ID = "901318180640";
 const SPACE_ID = "90130971239";
 const TEAM_ID = "9013231845";
 const PROJECT_PREFIX = "dom:";
+const PERSON_PREFIX = "dom-p:";
 const CLIENT = {name: "DOM", emoji: "🎯"};
 const LIST_DEFS = [
   {key:"paid",       name:"📣 Paid Media",           chip:"📣 Paid"},
@@ -444,6 +445,7 @@ let DOMLISTS = {};
 let MEMBERS = [];
 let ME = null;
 let PROJECTS = [];          // slugs sin prefijo
+let DOMUSERS = [];          // [{slug, name}] usuarios del portal (suscriptores)
 let AREA = "all";
 let boardMode = "persona";
 let personFilter = null;
@@ -466,6 +468,19 @@ function fmtCommentDate(ms){return new Date(Number(ms)).toLocaleDateString("es-C
 function prioNum(t){if(typeof t.priority==="number")return t.priority;return t.priority?Number(t.priority.id)||3:3}
 function prioFlag(t){const p=prioNum(t);if(p===1)return `<span class="prio-flag" style="color:#c0392b">🔴 urgente</span>`;if(p===2)return `<span class="prio-flag" style="color:#b9770e">🟠 alta</span>`;return ""}
 function projName(slug){return slug.split("-").map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(" ")}
+function taskWho(t){
+  const a = (t.assignees || [])[0];
+  if (a) return {name: a.username || "", initials: (a.initials || (a.username || "?").slice(0,2)).toUpperCase(), color: a.color || "", isDom: false, id: a.id};
+  let slug = null;
+  if (typeof t.domAssignee === "string" && t.domAssignee) slug = t.domAssignee;
+  else slug = ((t.tags || []).map(x => x.name || "").find(n => n.startsWith(PERSON_PREFIX)) || "").slice(PERSON_PREFIX.length) || null;
+  if (slug) {
+    const u = DOMUSERS.find(x => x.slug === slug);
+    const name = u ? u.name : projName(slug);
+    return {name, initials: name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase(), color: "#5b48c2", isDom: true, slug};
+  }
+  return null;
+}
 function taskProjects(t){
   if (Array.isArray(t.projects)) return t.projects; // payload del portal (ya sin prefijo)
   return (t.tags || []).map(x => x.name || "").filter(n => n.startsWith(PROJECT_PREFIX)).map(n => n.slice(PROJECT_PREFIX.length));
@@ -557,6 +572,7 @@ async function enterClient() {
     mode = "client";
     clientRole = d.role || "view";
     PROJECTS = d.projects || [];
+    DOMUSERS = d.domUsers || [];
     if (d.members) MEMBERS = d.members;
     localStorage.setItem("dom_code", code);
     if (who) localStorage.setItem("dom_name", who);
@@ -579,9 +595,20 @@ async function enterTeam(tokenArg) {
   document.getElementById("setupError").style.display = "none";
   clickupToken = token;
   try {
-    const [folder, teamData, userData, tagData] = await Promise.all([
+    const [folder, teamData, userData, tagData, subsTask] = await Promise.all([
       cu(`folder/${DOM_FOLDER_ID}`), cu("team"), cu("user"), cu(`space/${SPACE_ID}/tag`),
+      cu(`task/wdv5t9datm`).catch(() => null),
     ]);
+    if (subsTask) {
+      const raw = subsTask.description || subsTask.text_content || "";
+      const body = raw.includes("\n") ? raw.slice(raw.indexOf("\n") + 1) : raw;
+      try {
+        const subs = JSON.parse(body);
+        DOMUSERS = (Array.isArray(subs) ? subs : []).filter(x => x && x.who)
+          .map(x => ({slug: x.who.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9\-áéíóúñ]/g, "").slice(0, 30), name: x.who}))
+          .filter(x => x.slug);
+      } catch { DOMUSERS = []; }
+    }
     DOMLISTS = {};
     for (const l of folder.lists || []) {
       const key = listKeyFor(l.name);
@@ -701,6 +728,7 @@ async function loadBoard() {
     if (mode === "client") {
       const d = await domApi(`action=board&area=${AREA}`);
       PROJECTS = d.projects || PROJECTS;
+      DOMUSERS = d.domUsers || DOMUSERS;
       if (d.members) MEMBERS = d.members;
       items = (d.tasks || []).map(t => ({task: t, listId: null, area: t.area}));
     } else {
@@ -734,9 +762,9 @@ function renderPersonBar() {
   const today = dayStart(new Date());
   const counts = new Map();
   for (const it of boardTasks) {
-    const a = (it.task.assignees || [])[0];
-    const key = a ? String(a.username || a.id) : "sin";
-    if (!counts.has(key)) counts.set(key, {who: a, n: 0, late: 0});
+    const w = taskWho(it.task);
+    const key = w ? w.name : "sin";
+    if (!counts.has(key)) counts.set(key, {who: w, n: 0, late: 0});
     const c = counts.get(key);
     c.n++;
     if (it.task.due_date && dayStart(new Date(Number(it.task.due_date))) < today) c.late++;
@@ -750,10 +778,9 @@ function renderPersonBar() {
   };
   mkChip(null, "Todos", null, boardTasks.length, [...counts.values()].reduce((s, c) => s + c.late, 0));
   const people = [...counts.entries()].filter(([k]) => k !== "sin")
-    .sort((a, b) => (a[1].who.username || "").localeCompare(b[1].who.username || ""));
+    .sort((a, b) => a[0].localeCompare(b[0]));
   for (const [key, c] of people) {
-    const initials = (c.who.initials || (c.who.username || "?").slice(0,2)).toUpperCase();
-    mkChip(key, (c.who.username || "").split(" ")[0], initials, c.n, c.late);
+    mkChip(key, c.who.name.split(" ")[0] + (c.who.isDom ? " (DOM)" : ""), c.who.initials, c.n, c.late);
   }
   if (counts.has("sin")) mkChip("sin", "Sin asignar", "—", counts.get("sin").n, counts.get("sin").late);
 }
@@ -762,11 +789,8 @@ function filteredTasks() {
   let items = boardTasks;
   if (projectFilter === "__sin__") items = items.filter(it => !taskProjects(it.task).length);
   else if (projectFilter !== null) items = items.filter(it => taskProjects(it.task).includes(projectFilter));
-  if (personFilter === "sin") items = items.filter(it => !(it.task.assignees || []).length);
-  else if (personFilter !== null) items = items.filter(it => {
-    const a = (it.task.assignees || [])[0];
-    return a && String(a.username || a.id) === String(personFilter);
-  });
+  if (personFilter === "sin") items = items.filter(it => !taskWho(it.task));
+  else if (personFilter !== null) items = items.filter(it => taskWho(it.task)?.name === personFilter);
   return items;
 }
 
@@ -785,12 +809,11 @@ function dueInfo(t) {
 function taskRow(item) {
   const t = item.task;
   const info = dueInfo(t);
-  const a = (t.assignees || [])[0];
-  const initials = a ? (a.initials || (a.username || "?").slice(0,2)) : null;
+  const w = taskWho(t);
   const dateVal = info.ts ? new Date(info.ts).toLocaleDateString("en-CA") : "";
-  const avatarStyle = a && a.color ? `style="background:${esc(a.color)}22;color:${esc(a.color)}"` : "";
-  const avatar = initials
-    ? `<div class="trow-assignee" ${canEdit() ? `onclick="openAssign('${esc(t.id)}')" title="Cambiar responsable"` : 'style="cursor:default"'} ${avatarStyle}>${esc(initials.toUpperCase())}</div>`
+  const avatarStyle = w && w.color ? `style="background:${esc(w.color)}22;color:${esc(w.color)};${w.isDom ? "border:1.5px solid #5b48c2" : ""}"` : "";
+  const avatar = w
+    ? `<div class="trow-assignee" title="${canEdit() ? "Cambiar responsable" : esc(w.name)}${w.isDom ? " (DOM)" : ""}" ${canEdit() ? `onclick="openAssign('${esc(t.id)}')"` : 'style="cursor:default"'} ${avatarStyle}>${esc(w.initials)}</div>`
     : (canEdit() ? `<div class="trow-assignee unassigned" title="Asignar responsable" onclick="openAssign('${esc(t.id)}')">＋</div>` : "");
   const dateChip = canEdit()
     ? `<label class="date-chip ${info.cls}" title="Fecha de entrega">${info.label}<input type="date" value="${dateVal}" onchange="changeDate('${esc(t.id)}', this.value)" onclick="if(this.showPicker){event.preventDefault();try{this.showPicker()}catch(e){this.focus()}}"/></label>`
@@ -809,7 +832,7 @@ function taskRow(item) {
         ${projBadge}
         <span>${esc(t.status?.status || "")}</span>
         ${prioFlag(t)}
-        ${a && boardMode !== "persona" ? `<span>· ${esc(a.username || "")}</span>` : ""}
+        ${w && boardMode !== "persona" ? `<span>· ${esc(w.name)}${w.isDom ? " (DOM)" : ""}</span>` : ""}
       </div>
     </div>
     ${avatar}${dateChip}${actions}
@@ -845,21 +868,20 @@ function renderBoard() {
   if (boardMode === "persona") {
     const groups = new Map();
     for (const item of items) {
-      const a = (item.task.assignees || [])[0];
-      const key = a ? String(a.username || a.id) : "zz-sin";
-      if (!groups.has(key)) groups.set(key, {who: a, items: []});
+      const w = taskWho(item.task);
+      const key = w ? w.name : "zz-sin";
+      if (!groups.has(key)) groups.set(key, {who: w, items: []});
       groups.get(key).items.push(item);
     }
     const sorted = [...groups.values()].sort((g1, g2) => {
       if (!g1.who) return 1; if (!g2.who) return -1;
-      return (g1.who.username || "").localeCompare(g2.who.username || "");
+      return g1.who.name.localeCompare(g2.who.name);
     });
     for (const g of sorted) {
       const lateCount = g.items.filter(i => i.task.due_date && dayStart(new Date(Number(i.task.due_date))) < today).length;
-      const initials = g.who ? (g.who.initials || (g.who.username || "?").slice(0,2)) : "—";
       html += `<div class="group-header">
-        <div class="group-avatar" ${g.who?.color?`style="background:${esc(g.who.color)}22;color:${esc(g.who.color)}"`:""}>${esc(String(initials).toUpperCase())}</div>
-        <span class="group-title">${g.who ? esc(g.who.username || "") : "Sin asignar"}</span>
+        <div class="group-avatar" ${g.who?.color?`style="background:${esc(g.who.color)}22;color:${esc(g.who.color)}"`:""}>${g.who ? esc(g.who.initials) : "—"}</div>
+        <span class="group-title">${g.who ? esc(g.who.name) + (g.who.isDom ? " <span style='color:#5b48c2;font-size:11px'>(DOM)</span>" : "") : "Sin asignar"}</span>
         <span class="group-count">${g.items.length}</span>
         ${lateCount ? `<span class="group-late">${lateCount} vencida${lateCount>1?"s":""}</span>` : ""}
       </div>`;
@@ -1172,16 +1194,32 @@ function openAssign(taskId) {
   const item = boardTasks.find(i => i.task.id === taskId);
   if (!item) return;
   assignCtx = item;
-  const current = (item.task.assignees || [])[0];
+  const current = taskWho(item.task);
   document.getElementById("aTitle").textContent = `${CLIENT.emoji} DOM · ${item.task.name}`;
   const box = document.getElementById("aButtons");
   box.innerHTML = "";
+  const header = (txt) => {
+    const h = document.createElement("div");
+    h.style.cssText = "font-size:11px;font-weight:700;color:#a5aab6;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 2px";
+    h.textContent = txt;
+    box.appendChild(h);
+  };
+  if (MEMBERS.length) header("Equipo Color Ads");
   for (const m of MEMBERS.slice().sort((a, b) => a.name.localeCompare(b.name))) {
     const b = document.createElement("button");
-    const isCurrent = current && (String(current.id) === String(m.id) || current.username === m.name);
+    const isCurrent = current && !current.isDom && current.name === m.name;
     b.className = "move-area-btn" + (isCurrent ? " assign-btn-current" : "");
     b.innerHTML = `<span class="pc-avatar">${esc(m.name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase())}</span> ${esc(m.name)}${isCurrent ? " · actual" : ""}`;
-    b.onclick = () => doAssign(m.id, b);
+    b.onclick = () => doAssign({member: m.id}, b);
+    box.appendChild(b);
+  }
+  if (DOMUSERS.length) header("Equipo DOM");
+  for (const u of DOMUSERS.slice().sort((a, b) => a.name.localeCompare(b.name))) {
+    const b = document.createElement("button");
+    const isCurrent = current && current.isDom && current.slug === u.slug;
+    b.className = "move-area-btn" + (isCurrent ? " assign-btn-current" : "");
+    b.innerHTML = `<span class="pc-avatar" style="background:#efe9ff;color:#5b48c2">${esc(u.name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase())}</span> ${esc(u.name)} <span style="color:#5b48c2;font-size:11px">(DOM)</span>${isCurrent ? " · actual" : ""}`;
+    b.onclick = () => doAssign({dom: u.slug}, b);
     box.appendChild(b);
   }
   if (current) {
@@ -1189,32 +1227,39 @@ function openAssign(taskId) {
     b.className = "move-area-btn";
     b.style.color = "#b03030";
     b.textContent = "✕ Quitar responsable";
-    b.onclick = () => doAssign(null, b);
+    b.onclick = () => doAssign({}, b);
     box.appendChild(b);
   }
   document.getElementById("assignOverlay").style.display = "flex";
 }
 function closeAssign() { document.getElementById("assignOverlay").style.display = "none"; assignCtx = null; }
-async function doAssign(memberId, btn) {
+async function doAssign(target, btn) {
   const item = assignCtx;
   if (!item || btn.disabled) return;
   document.querySelectorAll("#aButtons .move-area-btn").forEach(b => b.disabled = true);
   btn.textContent = "Guardando...";
-  const m = memberId ? MEMBERS.find(x => String(x.id) === String(memberId)) : null;
+  const m = target.member ? MEMBERS.find(x => String(x.id) === String(target.member)) : null;
+  const u = target.dom ? DOMUSERS.find(x => x.slug === target.dom) : null;
   try {
     if (isTeam()) {
+      // Limpiar tags de persona DOM existentes
+      for (const n of (item.task.tags || []).map(x => x.name || "").filter(n => n.startsWith(PERSON_PREFIX))) {
+        await cu(`task/${item.task.id}/tag/${encodeURIComponent(n)}`, "DELETE").catch(() => {});
+      }
       const currentIds = (item.task.assignees || []).map(a => a.id);
-      const add = memberId ? [Number(memberId)] : [];
+      const add = target.member ? [Number(target.member)] : [];
       const rem = currentIds.filter(id => !add.includes(Number(id)) && !add.includes(id));
-      await cu(`task/${item.task.id}`, "PUT", {assignees: {add, rem}});
+      if (add.length || rem.length) await cu(`task/${item.task.id}`, "PUT", {assignees: {add, rem}});
+      if (u) await cu(`task/${item.task.id}/tag/${encodeURIComponent(PERSON_PREFIX + u.slug)}`, "POST");
       const fresh = await cu(`task/${item.task.id}`);
       const idx = boardTasks.findIndex(i => i.task.id === item.task.id);
       if (idx >= 0) boardTasks[idx].task = fresh;
     } else {
-      await domApi("action=set_assignee", {task_id: item.task.id, member_id: memberId || null});
+      await domApi("action=set_assignee", {task_id: item.task.id, member_id: target.member || null, dom_user: target.dom || null});
       item.task.assignees = m ? [{id: m.id, username: m.name, initials: m.name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase(), color: ""}] : [];
+      item.task.domAssignee = u ? u.slug : null;
     }
-    toast(m ? `👤 Asignada a ${m.name}` : "👤 Responsable quitado");
+    toast(m ? `👤 Asignada a ${m.name}` : u ? `👤 Asignada a ${u.name} (DOM)` : "👤 Responsable quitado");
     closeAssign(); renderPersonBar(); renderBoard();
   } catch (e) { toast("✕ No se pudo asignar: " + e.message); closeAssign(); }
 }
@@ -1281,11 +1326,13 @@ function openQuick() {
   document.getElementById("qtProject").innerHTML = `<option value="">Sin proyecto</option>` +
     PROJECTS.map(p => `<option value="${esc(p)}" ${projectFilter === p ? "selected" : ""}>${esc(projName(p))}</option>`).join("");
   const aw = document.getElementById("qtAssigneeWrap");
-  if (MEMBERS.length) {
+  if (MEMBERS.length || DOMUSERS.length) {
     aw.style.display = "block";
-    document.getElementById("qtAssignee").innerHTML = `<option value="">Sin asignar</option>` + MEMBERS
-      .slice().sort((a, b) => a.name.localeCompare(b.name))
-      .map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+    document.getElementById("qtAssignee").innerHTML = `<option value="">Sin asignar</option>` +
+      (MEMBERS.length ? `<optgroup label="Equipo Color Ads">` + MEMBERS.slice().sort((a, b) => a.name.localeCompare(b.name))
+        .map(m => `<option value="ca:${m.id}">${esc(m.name)}</option>`).join("") + `</optgroup>` : "") +
+      (DOMUSERS.length ? `<optgroup label="Equipo DOM">` + DOMUSERS.slice().sort((a, b) => a.name.localeCompare(b.name))
+        .map(u => `<option value="dom:${esc(u.slug)}">${esc(u.name)}</option>`).join("") + `</optgroup>` : "");
   } else aw.style.display = "none";
   document.getElementById("qtName").value = "";
   document.getElementById("qtDate").value = "";
@@ -1310,18 +1357,21 @@ async function createQuickTask() {
   }
   btn.disabled = true; btn.textContent = "Creando...";
   try {
+    const sel = document.getElementById("qtAssignee").value;
+    const caId = sel.startsWith("ca:") ? sel.slice(3) : null;
+    const domSlug = sel.startsWith("dom:") ? sel.slice(4) : null;
     if (isTeam()) {
       const listId = DOMLISTS[areaKey];
       if (!listId) throw new Error("DOM no tiene esa lista");
       const body = {name, priority};
       if (due) { body.due_date = due; body.due_date_time = false; }
-      if (project) body.tags = [PROJECT_PREFIX + project];
-      const assignee = document.getElementById("qtAssignee").value;
-      if (assignee) body.assignees = [Number(assignee)];
+      body.tags = [];
+      if (project) body.tags.push(PROJECT_PREFIX + project);
+      if (domSlug) body.tags.push(PERSON_PREFIX + domSlug);
+      if (caId) body.assignees = [Number(caId)];
       await cu(`list/${listId}/task`, "POST", body);
     } else {
-      const assignee = document.getElementById("qtAssignee").value || null;
-      await domApi("action=create_task", {area: areaKey, name, priority, due_date: due, project, who, assignee});
+      await domApi("action=create_task", {area: areaKey, name, priority, due_date: due, project, who, assignee: caId, dom_user: domSlug});
     }
     closeQuick();
     toast(`✓ Tarea creada en ${LIST_LABELS[areaKey]}`);
@@ -1347,7 +1397,7 @@ async function createQuickTask() {
     document.getElementById("codeInput").value = storedCode;
     accessCode = storedCode;
     who = storedName || "";
-    domApi(`action=board&area=all`).then(d => { mode = "client"; clientRole = d.role || "view"; PROJECTS = d.projects || []; if (d.members) MEMBERS = d.members; showApp(); })
+    domApi(`action=board&area=all`).then(d => { mode = "client"; clientRole = d.role || "view"; PROJECTS = d.projects || []; DOMUSERS = d.domUsers || []; if (d.members) MEMBERS = d.members; showApp(); })
       .catch(() => { localStorage.removeItem("dom_code"); accessCode = ""; });
   }
 })();

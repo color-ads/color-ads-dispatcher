@@ -11,6 +11,8 @@ const parseSubs = (raw) => {
 };
 
 const PROJECT_PREFIX = "dom:";
+const PERSON_PREFIX = "dom-p:";
+const slugify = (x) => String(x || "").toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9\-áéíóúñ]/g, "").slice(0, 30);
 const TZ = "America/Bogota";
 const PORTAL_URL = "https://color-ads-dispatcher.vercel.app/dom";
 
@@ -70,8 +72,14 @@ module.exports = async (req, res) => {
     const daysLate = (ms) => Math.round((Date.parse(today) - Date.parse(bogDate(ms))) / 86400000);
     const esc = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    const row = (t, extra) => {
+    const whoOf = (t) => {
       const a = (t.assignees || [])[0];
+      if (a) return a.username;
+      const p = (t.tags || []).map((x) => x.name || "").find((n) => n.startsWith(PERSON_PREFIX));
+      return p ? p.slice(PERSON_PREFIX.length).split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : null;
+    };
+    const row = (t, extra) => {
+      const a = { username: whoOf(t) };
       const proj = (t.tags || []).map((x) => x.name || "").find((n) => n.startsWith(PROJECT_PREFIX));
       return `<tr>
         <td style="padding:9px 0;border-bottom:1px solid #f0f0f0">
@@ -90,7 +98,7 @@ module.exports = async (req, res) => {
       ? `✅ DOM al día — sin vencidas ni entregas hoy`
       : `🎯 DOM hoy: ${late.length} vencida${late.length !== 1 ? "s" : ""} · ${dueToday.length} para hoy`;
 
-    const html = `
+    const baseHtml = (mine) => `
     <div style="max-width:600px;margin:0 auto;font-family:-apple-system,Segoe UI,sans-serif;padding:28px 22px;color:#1a1a1a">
       <div style="font-size:12.5px;color:#8a8a8a">DOM · Tablero Color Ads · ${new Date().toLocaleDateString("es-CO", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" })}</div>
       <h1 style="font-size:21px;margin:6px 0 4px">🎯 Recordatorio diario DOM</h1>
@@ -100,6 +108,7 @@ module.exports = async (req, res) => {
         ${dueTomorrow.length} para mañana · ${tasks.length} abiertas en total <span style="color:#8a8a8a">· ${noDate.length} sin fecha</span>
       </div>
       ${allClear ? `<p style="font-size:14px;color:#178040;font-weight:600">✅ Todo al día — nada vencido ni para hoy.</p>` : ""}
+      ${mine && mine.length ? `<div style="background:#f5f2ff;border:1px solid #ddd3f5;border-radius:10px;padding:4px 14px 10px;margin-top:16px">${section("👤 Tus tareas asignadas", "#5b48c2", mine.sort((a, b) => (a.due_date ? Number(a.due_date) : Infinity) - (b.due_date ? Number(b.due_date) : Infinity)), (t) => t.due_date ? (bogDate(t.due_date) < today ? `<span style="color:#c0392b">${daysLate(t.due_date)}d vencida</span>` : bogDate(t.due_date) === today ? `<span style="color:#b9770e">Hoy</span>` : fmtDay(t.due_date)) : `<span style="color:#d98324">Sin fecha</span>`)}</div>` : ""}
       ${section("🔴 Vencidas", "#c0392b", late.sort((a, b) => Number(a.due_date) - Number(b.due_date)), (t) => `<span style="color:#c0392b">${daysLate(t.due_date)} día${daysLate(t.due_date) !== 1 ? "s" : ""} vencida</span>`)}
       ${section("🟠 Para hoy", "#b9770e", dueToday, () => `<span style="color:#b9770e">Hoy</span>`)}
       ${section("🟡 Para mañana", "#a08a1e", dueTomorrow, () => `<span style="color:#a08a1e">Mañana</span>`)}
@@ -109,8 +118,13 @@ module.exports = async (req, res) => {
       </div>
     </div>`;
 
+    const mineOf = (sub) => {
+      const slug = slugify(sub.who);
+      if (!slug) return [];
+      return tasks.filter((t) => (t.tags || []).some((x) => (x.name || "") === PERSON_PREFIX + slug));
+    };
     const stats = { suscriptores: subs.length, abiertas: tasks.length, vencidas: late.length, hoy: dueToday.length, manana: dueTomorrow.length, sinFecha: noDate.length };
-    if (req.query.dry === "1") return res.status(200).json({ dry: true, subject, stats, emails: subs.map((s) => s.email), html });
+    if (req.query.dry === "1") return res.status(200).json({ dry: true, subject, stats, emails: subs.map((s) => s.email), personalizadas: Object.fromEntries(subs.map((s) => [s.email, mineOf(s).length])), html: baseHtml(mineOf(subs[0])) });
 
     const key = process.env.RESEND_API_KEY;
     if (!key) return res.status(503).json({ err: "Falta RESEND_API_KEY" });
@@ -120,7 +134,7 @@ module.exports = async (req, res) => {
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from, to: [s.email], subject, html }),
+        body: JSON.stringify({ from, to: [s.email], subject, html: baseHtml(mineOf(s)) }),
       });
       const d = await r.json().catch(() => ({}));
       results.push({ email: s.email, ok: r.ok, id: d.id || d.message });
